@@ -1,0 +1,147 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\CashRegister;
+use App\Models\Product;
+use App\Models\Tenant;
+use App\Models\Transaction;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+class EKasirMultiOutletTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_superadmin_can_login_and_access_desktop_dashboard(): void
+    {
+        $superadmin = User::factory()->create([
+            'email' => 'super@ekasir.com',
+            'role' => 'superadmin',
+        ]);
+
+        $response = $this->actingAs($superadmin)->get('/desktop/dashboard');
+
+        $response->assertStatus(200);
+        $response->assertSee('Management Dashboard');
+    }
+
+    public function test_cashier_can_quick_login_with_pin(): void
+    {
+        $tenant = Tenant::create([
+            'name' => 'Kantin Test',
+            'code' => 'TEST-001',
+        ]);
+
+        $cashier = User::create([
+            'tenant_id' => $tenant->id,
+            'name' => 'Kasir Test',
+            'email' => 'kasir@test.com',
+            'password' => bcrypt('password'),
+            'role' => 'cashier',
+            'pin' => '654321',
+        ]);
+
+        $response = $this->post('/quick-pin-login', [
+            'tenant_id' => $tenant->id,
+            'pin' => '654321',
+        ]);
+
+        $response->assertRedirect(route('mobile.dashboard'));
+        $this->assertAuthenticatedAs($cashier);
+    }
+
+    public function test_pos_checkout_deducts_stock_and_creates_transaction(): void
+    {
+        $tenant = Tenant::create([
+            'name' => 'Kantin Outlet 1',
+            'code' => 'OUT-1',
+        ]);
+
+        $cashier = User::create([
+            'tenant_id' => $tenant->id,
+            'name' => 'Kasir 1',
+            'email' => 'kasir1@test.com',
+            'password' => bcrypt('password'),
+            'role' => 'cashier',
+        ]);
+
+        $product = Product::create([
+            'tenant_id' => $tenant->id,
+            'name' => 'Kopi Kapal Api',
+            'barcode' => '123456789',
+            'hpp' => 1500,
+            'harga_jual' => 3000,
+            'stock' => 50,
+            'is_active' => true,
+        ]);
+
+        $register = CashRegister::create([
+            'tenant_id' => $tenant->id,
+            'user_id' => $cashier->id,
+            'opening_amount' => 100000,
+            'status' => 'open',
+        ]);
+
+        $this->actingAs($cashier);
+
+        $response = $this->postJson('/m/checkout', [
+            'items' => [
+                ['id' => $product->id, 'qty' => 2]
+            ],
+            'cash_paid' => 10000,
+            'payment_method' => 'cash'
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertJsonPath('status', 'success');
+
+        $this->assertEquals(48, $product->fresh()->stock);
+        $this->assertDatabaseHas('transactions', [
+            'tenant_id' => $tenant->id,
+            'total_amount' => 6000,
+            'change_amount' => 4000,
+        ]);
+    }
+
+    public function test_customer_can_order_from_mobile_shop(): void
+    {
+        $tenant = Tenant::create([
+            'name' => 'Kantin Sekolah BSD',
+            'code' => 'OUT-BSD',
+        ]);
+
+        $product = Product::create([
+            'tenant_id' => $tenant->id,
+            'name' => 'Nasi Goreng Spesial',
+            'hpp' => 10000,
+            'harga_jual' => 15000,
+            'stock' => 20,
+            'is_active' => true,
+        ]);
+
+        $response = $this->postJson('/shop/order', [
+            'tenant_id' => $tenant->id,
+            'customer_name' => 'Rian Siswa',
+            'customer_phone' => '081234567890',
+            'order_type' => 'dine_in',
+            'table_number' => 'Meja 05',
+            'payment_method' => 'qris',
+            'items' => [
+                ['id' => $product->id, 'qty' => 1]
+            ]
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertJsonPath('status', 'success');
+
+        $this->assertEquals(19, $product->fresh()->stock);
+        $this->assertDatabaseHas('transactions', [
+            'customer_name' => 'Rian Siswa',
+            'order_source' => 'customer_app',
+            'payment_method' => 'qris',
+            'total_amount' => 15000,
+        ]);
+    }
+}
