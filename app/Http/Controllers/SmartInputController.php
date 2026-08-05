@@ -28,7 +28,14 @@ class SmartInputController extends Controller
         ]);
 
         $user = Auth::user();
-        $tenantId = $user->tenant_id ?? session('active_tenant_id');
+        $tenantId = $request->tenant_id 
+            ?? $user->tenant_id 
+            ?? session('active_tenant_id') 
+            ?? \App\Models\Tenant::where('is_active', true)->first()?->id;
+
+        if (!$tenantId) {
+            return back()->with('error', 'Gagal menambahkan produk: Belum ada outlet/tenant yang terdaftar.');
+        }
 
         $imagePath = null;
 

@@ -34,10 +34,18 @@ class ProductController extends Controller
             'harga_jual' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
             'image' => 'nullable|image|max:4096',
+            'tenant_id' => 'nullable|exists:tenants,id',
         ]);
 
         $user = Auth::user();
-        $tenantId = $user->tenant_id ?? session('active_tenant_id');
+        $tenantId = $request->tenant_id 
+            ?? $user->tenant_id 
+            ?? session('active_tenant_id') 
+            ?? \App\Models\Tenant::where('is_active', true)->first()?->id;
+
+        if (!$tenantId) {
+            return back()->with('error', 'Gagal menambahkan produk: Belum ada outlet/tenant yang terdaftar.');
+        }
 
         $imagePath = null;
         if ($request->hasFile('image')) {

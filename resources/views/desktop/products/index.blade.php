@@ -106,6 +106,17 @@
 
             <form action="{{ route('desktop.products.store') }}" method="POST" enctype="multipart/form-data" class="space-y-3 text-xs">
                 @csrf
+                @if(auth()->user()->role === 'superadmin')
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Outlet / Tenant</label>
+                        <select name="tenant_id" class="w-full px-3 py-2 bg-slate-100 rounded-xl border border-slate-200 font-semibold">
+                            @foreach(\App\Models\Tenant::where('is_active', true)->get() as $t)
+                                <option value="{{ $t->id }}" {{ (session('active_tenant_id') == $t->id) ? 'selected' : '' }}>{{ $t->name }} ({{ $t->code }})</option>
+                            @endforeach
+                        </select>
+                    </div>
+                @endif
+
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">Nama Produk</label>
                     <input type="text" name="name" required placeholder="Nama barang..." class="w-full px-3 py-2 bg-slate-100 rounded-xl border border-slate-200">
