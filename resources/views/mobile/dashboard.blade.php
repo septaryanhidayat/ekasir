@@ -124,6 +124,19 @@
             <h4 class="font-extrabold text-slate-800 text-sm">Riwayat Struk</h4>
             <p class="text-[11px] text-slate-500 mt-0.5">{{ $todayTransactionsCount }} Transaksi Hari Ini</p>
         </a>
+
+        @if(auth()->user()->role === 'superadmin' || auth()->user()->role === 'manager')
+        <!-- Menu 5: Admin Desktop -->
+        <a href="{{ route('desktop.dashboard') }}" class="group glass-card p-5 rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 relative overflow-hidden flex flex-col items-center text-center border border-indigo-200/60">
+            <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-violet-600 to-indigo-700 text-white flex items-center justify-center mb-3 shadow-lg shadow-indigo-500/30 group-hover:scale-110 transition-transform">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                </svg>
+            </div>
+            <h4 class="font-extrabold text-slate-800 text-sm">Mode Desktop</h4>
+            <p class="text-[11px] text-slate-500 mt-0.5">Admin & Laporan</p>
+        </a>
+        @endif
     </div>
 </div>
 
