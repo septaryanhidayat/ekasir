@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\CashFlow;
 use App\Models\CashRegister;
+use App\Models\Expense;
 use App\Models\Tenant;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
@@ -19,11 +20,20 @@ class ReportController extends Controller
             ->whereDate('created_at', '>=', $startDate)
             ->whereDate('created_at', '<=', $endDate);
 
-        $transactions = $query->orderBy('created_at', 'desc')->paginate(20);
+        $transactions = $query->orderBy('created_at', 'desc')->paginate(20, ['*'], 'transactions_page');
 
         $totalRevenue = (clone $query)->sum('total_amount');
         $totalHpp = (clone $query)->sum('total_hpp');
-        $totalProfit = $totalRevenue - $totalHpp;
+        $grossProfit = $totalRevenue - $totalHpp;
+
+        $expenseQuery = Expense::with(['user', 'tenant'])
+            ->whereDate('expense_date', '>=', $startDate)
+            ->whereDate('expense_date', '<=', $endDate);
+
+        $expenses = (clone $expenseQuery)->orderBy('expense_date', 'desc')->paginate(15, ['*'], 'expenses_page');
+        $totalExpenses = (clone $expenseQuery)->sum('amount');
+
+        $netProfit = $grossProfit - $totalExpenses;
 
         $cashRegisters = CashRegister::with(['user'])
             ->whereDate('opened_at', '>=', $startDate)
@@ -37,7 +47,10 @@ class ReportController extends Controller
             'endDate',
             'totalRevenue',
             'totalHpp',
-            'totalProfit',
+            'grossProfit',
+            'totalExpenses',
+            'netProfit',
+            'expenses',
             'cashRegisters'
         ));
     }

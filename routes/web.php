@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CashRegisterController;
 use App\Http\Controllers\CustomerOrderController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\PosController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ReportController;
@@ -83,6 +84,12 @@ Route::middleware(['auth'])->group(function () {
 
         // Financial & Cash Reports
         Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+
+        // Operational Expenses Management
+        Route::get('/expenses', [ExpenseController::class, 'index'])->name('expenses.index');
+        Route::post('/expenses', [ExpenseController::class, 'store'])->name('expenses.store');
+        Route::put('/expenses/{expense}', [ExpenseController::class, 'update'])->name('expenses.update');
+        Route::delete('/expenses/{expense}', [ExpenseController::class, 'destroy'])->name('expenses.destroy');
     });
 });
 

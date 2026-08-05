@@ -1,6 +1,6 @@
 @extends('layouts.desktop')
 
-@section('title', 'Laporan Keuangan & Kas - E-Kasir')
+@section('title', 'Laporan Keuangan & Operasional - E-Kasir')
 @section('page_title', 'Laporan Keuangan & Kas Harian')
 
 @section('content')
@@ -8,7 +8,7 @@
 <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
     <div>
         <h3 class="text-base font-extrabold text-slate-800">Filter Periode Laporan</h3>
-        <p class="text-xs text-slate-400">Pilih rentang tanggal untuk melihat rekapitulasi</p>
+        <p class="text-xs text-slate-400">Pilih rentang tanggal untuk melihat rekapitulasi laporan keuangan</p>
     </div>
 
     <form method="GET" action="{{ route('desktop.reports.index') }}" class="flex items-center space-x-3 text-xs font-bold">
@@ -28,21 +28,95 @@
     </form>
 </div>
 
-<!-- Summary Cards -->
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-        <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Total Omset Penjualan</span>
-        <h3 class="text-2xl font-black text-slate-900 mt-2">Rp {{ number_format($totalRevenue, 0, ',', '.') }}</h3>
+<!-- Summary Cards (5 Financial Indicators) -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+    <!-- Omset Penjualan -->
+    <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm">
+        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Omset Penjualan</span>
+        <h3 class="text-xl font-black text-slate-900 mt-1.5">Rp {{ number_format($totalRevenue, 0, ',', '.') }}</h3>
+        <p class="text-[10px] text-slate-400 mt-1">Total Penerimaan</p>
     </div>
 
-    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-        <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Total HPP (Modal)</span>
-        <h3 class="text-2xl font-black text-slate-600 mt-2">Rp {{ number_format($totalHpp, 0, ',', '.') }}</h3>
+    <!-- HPP / Modal -->
+    <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm">
+        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">HPP (Modal Barang)</span>
+        <h3 class="text-xl font-black text-slate-600 mt-1.5">Rp {{ number_format($totalHpp, 0, ',', '.') }}</h3>
+        <p class="text-[10px] text-slate-400 mt-1">Harga Pokok Produk</p>
     </div>
 
-    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-        <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Profit Bersih</span>
-        <h3 class="text-2xl font-black text-emerald-600 mt-2">Rp {{ number_format($totalProfit, 0, ',', '.') }}</h3>
+    <!-- Laba Kotor -->
+    <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm">
+        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Laba Kotor</span>
+        <h3 class="text-xl font-black text-indigo-600 mt-1.5">Rp {{ number_format($grossProfit, 0, ',', '.') }}</h3>
+        <p class="text-[10px] text-slate-400 mt-1">Omset - HPP</p>
+    </div>
+
+    <!-- Total Operasional -->
+    <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm">
+        <span class="text-[11px] font-bold uppercase tracking-wider text-rose-500">Biaya Operasional</span>
+        <h3 class="text-xl font-black text-rose-600 mt-1.5">Rp {{ number_format($totalExpenses, 0, ',', '.') }}</h3>
+        <p class="text-[10px] text-slate-400 mt-1">Gaji, Listrik, Bensin, dll</p>
+    </div>
+
+    <!-- Laba Bersih -->
+    <div class="bg-gradient-to-tr from-emerald-600 to-teal-600 p-5 rounded-3xl shadow-lg text-white">
+        <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-100">Laba Bersih (Net Profit)</span>
+        <h3 class="text-xl font-black mt-1.5">Rp {{ number_format($netProfit, 0, ',', '.') }}</h3>
+        <p class="text-[10px] text-emerald-100 mt-1">Laba Kotor - Operasional</p>
+    </div>
+</div>
+
+<!-- Rincian Pengeluaran Operasional Table -->
+<div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm mb-8">
+    <div class="flex items-center justify-between mb-4">
+        <div>
+            <h3 class="text-base font-extrabold text-slate-800">Rincian Pengeluaran Operasional</h3>
+            <p class="text-xs text-slate-400">Daftar biaya operasional (Gaji, Listrik, Bensin, dll) pada periode ini</p>
+        </div>
+        <a href="{{ route('desktop.expenses.index') }}" class="text-xs font-bold text-indigo-600 hover:underline">+ Kelola Operasional</a>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs">
+            <thead>
+                <tr class="bg-slate-50 border-b border-slate-100 text-slate-400 font-bold uppercase tracking-wider">
+                    <th class="py-3 px-4">Tanggal</th>
+                    <th class="py-3 px-4">Kategori</th>
+                    <th class="py-3 px-4">Nominal</th>
+                    <th class="py-3 px-4">Keterangan</th>
+                    <th class="py-3 px-4">Dicatat Oleh</th>
+                    @if(auth()->user()->role === 'superadmin')
+                        <th class="py-3 px-4">Outlet</th>
+                    @endif
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 font-semibold text-slate-700">
+                @forelse($expenses as $exp)
+                    <tr class="hover:bg-slate-50/80 transition">
+                        <td class="py-3 px-4 font-bold text-slate-900">{{ $exp->expense_date->format('d/m/Y') }}</td>
+                        <td class="py-3 px-4">
+                            <span class="px-2.5 py-1 bg-slate-100 rounded-lg font-bold text-slate-700 text-[11px]">
+                                {{ $exp->category }}
+                            </span>
+                        </td>
+                        <td class="py-3 px-4 font-bold text-rose-600">Rp {{ number_format($exp->amount, 0, ',', '.') }}</td>
+                        <td class="py-3 px-4 text-slate-600">{{ $exp->notes ?? '-' }}</td>
+                        <td class="py-3 px-4 text-slate-500">{{ $exp->user->name ?? '-' }}</td>
+                        @if(auth()->user()->role === 'superadmin')
+                            <td class="py-3 px-4"><span class="px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded font-bold text-[10px]">{{ $exp->tenant->name ?? '-' }}</span></td>
+                        @endif
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="6" class="py-6 text-center text-slate-400">Belum ada data pengeluaran operasional pada periode ini.</td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+
+    <div class="mt-4">
+        {{ $expenses->links() }}
     </div>
 </div>
 
@@ -59,7 +133,7 @@
                     <th class="py-3 px-4">Kasir</th>
                     <th class="py-3 px-4">Jumlah Item</th>
                     <th class="py-3 px-4">Omset</th>
-                    <th class="py-3 px-4">Profit</th>
+                    <th class="py-3 px-4">Profit Kotor</th>
                     <th class="py-3 px-4">Metode</th>
                 </tr>
             </thead>

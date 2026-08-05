@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Expense;
 use App\Models\Product;
 use App\Models\Tenant;
 use App\Models\Transaction;
@@ -25,7 +26,9 @@ class DashboardController extends Controller
         $totalSalesQuery = Transaction::query();
         $totalTransactions = (clone $totalSalesQuery)->count();
         $totalRevenue = (clone $totalSalesQuery)->sum('total_amount');
-        $totalProfit = (clone $totalSalesQuery)->sum('total_amount') - (clone $totalSalesQuery)->sum('total_hpp');
+        $totalHpp = (clone $totalSalesQuery)->sum('total_hpp');
+        $totalExpenses = Expense::query()->sum('amount');
+        $totalProfit = ($totalRevenue - $totalHpp) - $totalExpenses;
 
         $totalProducts = Product::count();
         $lowStockProducts = Product::where('stock', '<=', 10)->limit(5)->get();
@@ -59,8 +62,15 @@ class DashboardController extends Controller
                 ->whereDate('created_at', $date)
                 ->sum('total_hpp');
 
+            $dayExpenses = Expense::withoutGlobalScopes()
+                ->when(!$isSuperAdmin || $activeTenantId, function ($q) use ($activeTenantId) {
+                    $q->where('tenant_id', $activeTenantId);
+                })
+                ->whereDate('expense_date', $date)
+                ->sum('amount');
+
             $chartSalesData[] = (float) $daySales;
-            $chartProfitData[] = (float) ($daySales - $dayHpp);
+            $chartProfitData[] = (float) (($daySales - $dayHpp) - $dayExpenses);
         }
 
         // Outlet performance breakdown for Superadmin
@@ -70,12 +80,14 @@ class DashboardController extends Controller
             foreach ($tenants as $t) {
                 $sales = Transaction::withoutGlobalScopes()->where('tenant_id', $t->id)->sum('total_amount');
                 $hpp = Transaction::withoutGlobalScopes()->where('tenant_id', $t->id)->sum('total_hpp');
+                $expenses = Expense::withoutGlobalScopes()->where('tenant_id', $t->id)->sum('amount');
                 $txCount = Transaction::withoutGlobalScopes()->where('tenant_id', $t->id)->count();
 
                 $outletStats[] = [
                     'tenant' => $t,
                     'sales' => $sales,
-                    'profit' => $sales - $hpp,
+                    'expenses' => $expenses,
+                    'profit' => ($sales - $hpp) - $expenses,
                     'tx_count' => $txCount,
                 ];
             }
@@ -89,6 +101,7 @@ class DashboardController extends Controller
             'totalTransactions',
             'totalRevenue',
             'totalProfit',
+            'totalExpenses',
             'totalProducts',
             'lowStockProducts',
             'recentTransactions',

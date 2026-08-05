@@ -52,6 +52,14 @@
                 Produk & Stok
             </a>
 
+            <a href="{{ route('desktop.expenses.index') }}" 
+               class="flex items-center px-4 py-3 rounded-xl text-sm font-semibold transition {{ request()->routeIs('desktop.expenses.*') ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30' : 'hover:bg-slate-800 text-slate-400 hover:text-white' }}">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                </svg>
+                Pengeluaran Operasional
+            </a>
+
             @if(auth()->user()->role === 'superadmin')
                 <a href="{{ route('desktop.tenants.index') }}" 
                    class="flex items-center px-4 py-3 rounded-xl text-sm font-semibold transition {{ request()->routeIs('desktop.tenants.*') ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30' : 'hover:bg-slate-800 text-slate-400 hover:text-white' }}">
