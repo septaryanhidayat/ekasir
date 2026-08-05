@@ -122,8 +122,8 @@
                 <p class="font-bold text-gray-700 mb-1">Akun Uji Coba Demo:</p>
                 <div class="space-y-1">
                     <p><span class="font-semibold text-indigo-600">Owner/Superadmin:</span> owner@ekasir.com / password</p>
-                    <p><span class="font-semibold text-indigo-600">Manager Kemang:</span> manager.kemang@ekasir.com / password</p>
-                    <p><span class="font-semibold text-indigo-600">Kasir (PIN 123456):</span> kasir.kemang@ekasir.com</p>
+                    <p><span class="font-semibold text-indigo-600">Manager:</span> manager@ekasir.com / password</p>
+                    <p><span class="font-semibold text-indigo-600">Kasir (PIN 123456):</span> kasir@ekasir.com</p>
                 </div>
             </div>
         </div>
