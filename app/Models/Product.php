@@ -56,10 +56,6 @@ class Product extends Model
             return $this->image;
         }
 
-        if (file_exists(public_path('storage/' . $this->image))) {
-            return asset('storage/' . $this->image);
-        }
-
-        return asset('storage/' . $this->image);
+        return asset('storage/' . ltrim($this->image, '/'));
     }
 }
