@@ -214,4 +214,54 @@ class EKasirMultiOutletTest extends TestCase
         $response->assertSee('INV/20260806/0004');
         $response->assertSee('Budi Siswa');
     }
+
+    public function test_mobile_smart_input_can_restock_existing_product(): void
+    {
+        $tenant = Tenant::create([
+            'name' => 'Outlet Restok',
+            'code' => 'OUT-RESTOK',
+        ]);
+
+        $user = User::create([
+            'tenant_id' => $tenant->id,
+            'name' => 'Kasir Mobile',
+            'email' => 'kasir_restok@test.com',
+            'password' => bcrypt('password'),
+            'role' => 'cashier',
+        ]);
+
+        $product = Product::create([
+            'tenant_id' => $tenant->id,
+            'name' => 'Teh Botol Sosro',
+            'barcode' => '888123456',
+            'hpp' => 2000,
+            'harga_jual' => 4000,
+            'stock' => 10,
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($user);
+
+        $response = $this->post('/m/smart-input', [
+            'mode' => 'update',
+            'product_id' => $product->id,
+            'stock_action' => 'add',
+            'stock' => 15,
+        ]);
+
+        $response->assertRedirect(route('mobile.dashboard'));
+        $this->assertEquals(25, $product->fresh()->stock);
+
+        // Test set stock action
+        $responseSet = $this->post('/m/smart-input', [
+            'mode' => 'update',
+            'product_id' => $product->id,
+            'stock_action' => 'set',
+            'stock' => 100,
+        ]);
+
+        $responseSet->assertRedirect(route('mobile.dashboard'));
+        $this->assertEquals(100, $product->fresh()->stock);
+    }
 }
+

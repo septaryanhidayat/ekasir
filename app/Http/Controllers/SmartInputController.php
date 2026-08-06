@@ -19,8 +19,9 @@ class SmartInputController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'mode' => 'nullable|string|in:new,update_stock',
-            'product_id' => 'nullable|exists:products,id',
+            'mode' => 'nullable|string|in:new,update,update_stock',
+            'product_id' => 'required_if:mode,update,update_stock|nullable|exists:products,id',
+            'stock_action' => 'nullable|string|in:add,set',
             'name' => 'required_if:mode,new|nullable|string|max:255',
             'barcode' => 'nullable|string|max:100',
             'hpp' => 'nullable|numeric|min:0',
@@ -44,7 +45,7 @@ class SmartInputController extends Controller
         }
 
         // Mode 1: Update Existing Product Stock
-        if ($request->product_id || $request->mode === 'update_stock') {
+        if ($request->product_id || in_array($request->mode, ['update', 'update_stock'])) {
             $product = Product::findOrFail($request->product_id);
             
             if ($request->filled('stock_action') && $request->stock_action === 'add') {

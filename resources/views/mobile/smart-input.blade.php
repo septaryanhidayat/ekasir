@@ -73,7 +73,6 @@
     <form action="{{ route('mobile.smart-input.store') }}" method="POST" enctype="multipart/form-data" class="space-y-4 text-xs">
         @csrf
         <input type="hidden" name="mode" :value="inputMode">
-        <input type="hidden" name="product_id" :value="selectedProductId">
 
         @if(auth()->user()->role === 'superadmin')
             <div>
