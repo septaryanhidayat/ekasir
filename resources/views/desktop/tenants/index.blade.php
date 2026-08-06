@@ -51,7 +51,7 @@
                                 <span class="font-semibold text-slate-800">{{ $t->effective_bank_info ?? 'Belum diatur (Pusat)' }}</span>
                             </div>
                             @if($bankNum)
-                                <button onclick="copyTextToClipboard('{{ e($bankNum) }}').then(() => alert('No. Rekening {{ e($bankNum) }} tersalin!'))" class="px-2 py-0.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 font-bold rounded text-[10px] shrink-0">
+                                <button onclick="copyTextToClipboard('{{ e($bankNum) }}').then(() => showToast('No. Rekening {{ e($bankNum) }} tersalin ke clipboard!', 'No. Rekening Tersalin'))" class="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 font-bold rounded-lg text-[10px] shrink-0 transition active:scale-95 shadow-sm">
                                     Salin No.
                                 </button>
                             @endif
@@ -66,7 +66,7 @@
                                 <span class="font-semibold text-slate-800">{{ $t->effective_ewallet_info ?? 'Belum diatur (Pusat)' }}</span>
                             </div>
                             @if($ewalletNum)
-                                <button onclick="copyTextToClipboard('{{ e($ewalletNum) }}').then(() => alert('Info E-Wallet {{ e($ewalletNum) }} tersalin!'))" class="px-2 py-0.5 bg-teal-50 hover:bg-teal-100 text-teal-600 font-bold rounded text-[10px] shrink-0">
+                                <button onclick="copyTextToClipboard('{{ e($ewalletNum) }}').then(() => showToast('Nomor E-Wallet {{ e($ewalletNum) }} tersalin ke clipboard!', 'E-Wallet Tersalin'))" class="px-2.5 py-1 bg-teal-50 hover:bg-teal-100 text-teal-600 font-bold rounded-lg text-[10px] shrink-0 transition active:scale-95 shadow-sm">
                                     Salin No.
                                 </button>
                             @endif
@@ -78,7 +78,7 @@
                                 <span class="font-semibold text-slate-800">{{ $t->qris_info ?? 'Standard Auto-Generate' }}</span>
                             </div>
                             @if($t->effective_qris_info)
-                                <button onclick="copyTextToClipboard('{{ e($t->effective_qris_info) }}').then(() => alert('Kode QRIS {{ e($t->effective_qris_info) }} tersalin!'))" class="px-2 py-0.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 font-bold rounded text-[10px] shrink-0">
+                                <button onclick="copyTextToClipboard('{{ e($t->effective_qris_info) }}').then(() => showToast('Payload/Kode QRIS {{ e($t->effective_qris_info) }} tersalin ke clipboard!', 'Kode QRIS Tersalin'))" class="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 font-bold rounded-lg text-[10px] shrink-0 transition active:scale-95 shadow-sm">
                                     Salin Code
                                 </button>
                             @endif
@@ -97,9 +97,8 @@
                         <button @click="selectedTenant = {{ json_encode($t) }}; editModal = true" class="px-3 py-1.5 bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 font-bold text-slate-600 rounded-xl transition">
                             Edit Outlet
                         </button>
-                        <form action="{{ route('desktop.tenants.toggle-status', $t->id) }}" method="POST">
+                        <form action="{{ route('desktop.tenants.toggle', $t->id) }}" method="POST">
                             @csrf
-                            @method('PATCH')
                             <button type="submit" class="px-3 py-1.5 font-bold rounded-xl transition {{ $t->is_active ? 'bg-rose-50 text-rose-600 hover:bg-rose-100' : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100' }}">
                                 {{ $t->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
                             </button>
@@ -271,27 +270,4 @@
         </div>
     </div>
 </div>
-
-@push('scripts')
-<script>
-function copyTextToClipboard(text) {
-    if (navigator.clipboard && window.isSecureContext) {
-        return navigator.clipboard.writeText(text);
-    } else {
-        const textArea = document.createElement("textarea");
-        textArea.value = text;
-        textArea.style.position = "fixed";
-        textArea.style.left = "-999999px";
-        textArea.style.top = "-999999px";
-        document.body.appendChild(textArea);
-        textArea.focus();
-        textArea.select();
-        return new Promise((resolve, reject) => {
-            document.execCommand('copy') ? resolve() : reject();
-            textArea.remove();
-        });
-    }
-}
-</script>
-@endpush
 @endsection

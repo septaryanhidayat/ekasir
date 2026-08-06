@@ -52,7 +52,7 @@ class ProductController extends Controller
             $imagePath = $request->file('image')->store('products', 'public');
         }
 
-        $barcode = $request->barcode ?: 'BRD' . time() . rand(100, 999);
+        $barcode = $request->barcode ?: 'BRD' . date('Ymd') . rand(1000, 9999);
 
         Product::create([
             'tenant_id' => $tenantId,
@@ -79,9 +79,11 @@ class ProductController extends Controller
             'image' => 'nullable|image|max:4096',
         ]);
 
+        $barcode = $request->barcode ?: ($product->barcode ?: 'BRD' . date('Ymd') . rand(1000, 9999));
+
         $data = [
             'name' => $request->name,
-            'barcode' => $request->barcode ?: $product->barcode,
+            'barcode' => $barcode,
             'hpp' => $request->hpp,
             'harga_jual' => $request->harga_jual,
             'stock' => $request->stock,

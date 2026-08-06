@@ -124,6 +124,23 @@
             <h4 class="font-extrabold text-slate-800 text-sm">Riwayat Struk</h4>
             <p class="text-[11px] text-slate-500 mt-0.5">{{ $todayTransactionsCount }} Transaksi Hari Ini</p>
         </a>
+
+        @if(auth()->check() && (auth()->user()->role === 'superadmin' || auth()->user()->role === 'manager'))
+            <!-- Menu 5: Manajemen Produk & Stok (Khusus Admin/Manajer) -->
+            <a href="{{ route('desktop.products.index') }}" class="group glass-card p-5 rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 relative overflow-hidden flex flex-col items-center text-center col-span-2 border border-indigo-200/80 bg-indigo-50/40">
+                <div class="flex items-center space-x-3 text-left w-full">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-700 text-white flex items-center justify-center shadow-lg shadow-blue-500/30 shrink-0 group-hover:scale-110 transition-transform">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h4 class="font-extrabold text-slate-800 text-sm">Manajemen Produk & Stok</h4>
+                        <p class="text-[11px] text-slate-500">Kelola inventaris, barcode, & update stok barang</p>
+                    </div>
+                </div>
+            </a>
+        @endif
     </div>
 </div>
 
