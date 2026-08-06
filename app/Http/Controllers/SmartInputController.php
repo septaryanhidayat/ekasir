@@ -12,19 +12,25 @@ class SmartInputController extends Controller
 {
     public function index()
     {
-        return view('mobile.smart-input');
+        $products = Product::where('is_active', true)->orderBy('name')->get();
+        return view('mobile.smart-input', compact('products'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
+            'mode' => 'nullable|string|in:new,update_stock',
+            'product_id' => 'nullable|exists:products,id',
+            'name' => 'required_if:mode,new|nullable|string|max:255',
             'barcode' => 'nullable|string|max:100',
-            'hpp' => 'required|numeric|min:0',
-            'harga_jual' => 'required|numeric|min:0',
+            'hpp' => 'nullable|numeric|min:0',
+            'harga_jual' => 'nullable|numeric|min:0',
             'stock' => 'required|integer|min:0',
             'image' => 'nullable|image|max:4096',
             'image_camera_base64' => 'nullable|string',
+            'tenant_id' => 'nullable|exists:tenants,id',
+            'created_at' => 'nullable|string',
+            'updated_at' => 'nullable|string',
         ]);
 
         $user = Auth::user();
@@ -37,6 +43,41 @@ class SmartInputController extends Controller
             return back()->with('error', 'Gagal menambahkan produk: Belum ada outlet/tenant yang terdaftar.');
         }
 
+        // Mode 1: Update Existing Product Stock
+        if ($request->product_id || $request->mode === 'update_stock') {
+            $product = Product::findOrFail($request->product_id);
+            
+            if ($request->filled('stock_action') && $request->stock_action === 'add') {
+                $product->stock += (int) $request->stock;
+            } else {
+                $product->stock = (int) $request->stock;
+            }
+
+            if ($request->filled('hpp')) $product->hpp = $request->hpp;
+            if ($request->filled('harga_jual')) $product->harga_jual = $request->harga_jual;
+            if ($request->filled('barcode')) $product->barcode = $request->barcode;
+            if ($request->filled('name')) $product->name = $request->name;
+
+            if ($request->hasFile('image')) {
+                $product->image = $request->file('image')->store('products', 'public');
+            }
+
+            if ($request->filled('created_at')) {
+                $product->created_at = \Carbon\Carbon::parse($request->created_at);
+            }
+
+            if ($request->filled('updated_at')) {
+                $product->updated_at = \Carbon\Carbon::parse($request->updated_at);
+            } else {
+                $product->updated_at = now();
+            }
+
+            $product->save();
+
+            return redirect()->route('mobile.dashboard')->with('success', "Stok produk '{$product->name}' berhasil diperbarui! Stok saat ini: {$product->stock} unit.");
+        }
+
+        // Mode 2: Create New Product
         $imagePath = null;
 
         if ($request->hasFile('image')) {
@@ -53,19 +94,29 @@ class SmartInputController extends Controller
             }
         }
 
-        $barcode = $request->barcode ?: 'BRD' . time() . rand(100, 999);
+        $barcode = $request->barcode ?: 'BRD' . date('Ymd') . rand(1000, 9999);
 
-        $product = Product::create([
+        $productData = [
             'tenant_id' => $tenantId,
             'name' => $request->name,
             'barcode' => $barcode,
             'image' => $imagePath,
-            'hpp' => $request->hpp,
-            'harga_jual' => $request->harga_jual,
+            'hpp' => $request->hpp ?? 0,
+            'harga_jual' => $request->harga_jual ?? 0,
             'stock' => $request->stock,
             'is_active' => true,
-        ]);
+        ];
 
-        return redirect()->route('mobile.pos')->with('success', "Produk '{$product->name}' berhasil ditambahkan!");
+        if ($request->filled('created_at')) {
+            $productData['created_at'] = \Carbon\Carbon::parse($request->created_at);
+        }
+
+        if ($request->filled('updated_at')) {
+            $productData['updated_at'] = \Carbon\Carbon::parse($request->updated_at);
+        }
+
+        $product = Product::create($productData);
+
+        return redirect()->route('mobile.dashboard')->with('success', "Produk baru '{$product->name}' berhasil ditambahkan dengan stok {$product->stock} unit!");
     }
 }

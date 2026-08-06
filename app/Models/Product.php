@@ -23,6 +23,8 @@ class Product extends Model
         'harga_jual',
         'stock',
         'is_active',
+        'created_at',
+        'updated_at',
     ];
 
     protected $casts = [

@@ -35,11 +35,18 @@ class PosController extends Controller
         $todayTransactionsCount = Transaction::whereDate('created_at', today())->count();
         $todaySalesTotal = Transaction::whereDate('created_at', today())->sum('total_amount');
         
+        $todayItemsSold = TransactionDetail::whereHas('transaction', function ($q) {
+            $q->whereDate('created_at', today());
+        })->sum('qty');
+
+        $todayStockUpdatedCount = Product::whereDate('updated_at', today())->count();
+        $todayProductsAddedCount = Product::whereDate('created_at', today())->count();
+
         $pendingOnlineOrdersCount = Transaction::where('order_source', 'customer_app')
             ->whereIn('order_status', ['paid', 'processing'])
             ->count();
 
-        return view('mobile.dashboard', compact('user', 'tenant', 'openRegister', 'cashBalance', 'todayTransactionsCount', 'todaySalesTotal', 'pendingOnlineOrdersCount'));
+        return view('mobile.dashboard', compact('user', 'tenant', 'openRegister', 'cashBalance', 'todayTransactionsCount', 'todaySalesTotal', 'pendingOnlineOrdersCount', 'todayItemsSold', 'todayStockUpdatedCount', 'todayProductsAddedCount'));
     }
 
     public function pos()

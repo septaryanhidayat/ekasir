@@ -75,6 +75,41 @@
     </a>
 </div>
 
+<!-- Daily Stock & Sales Activity Summary Card -->
+<div class="mb-6 bg-gradient-to-tr from-slate-900 via-indigo-950 to-slate-900 text-white p-5 rounded-3xl shadow-xl border border-slate-800 space-y-3">
+    <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
+        <div class="flex items-center space-x-2">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <h4 class="font-extrabold text-white text-xs uppercase tracking-wider">Aktivitas Stok & Sales Hari Ini (WIB)</h4>
+        </div>
+        <span class="text-[10px] text-indigo-300 font-bold bg-indigo-500/20 px-2 py-0.5 rounded-full border border-indigo-500/30">
+            {{ now('Asia/Jakarta')->format('d M') }}
+        </span>
+    </div>
+
+    <div class="grid grid-cols-2 gap-3 text-xs">
+        <div class="bg-white/5 p-3 rounded-2xl border border-white/10 flex items-center space-x-2.5">
+            <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-base shrink-0">
+                🛍️
+            </div>
+            <div>
+                <p class="text-[9px] text-slate-400 font-bold uppercase">Terjual</p>
+                <p class="font-black text-emerald-400 text-sm">{{ number_format($todayItemsSold) }} <span class="text-[9px] text-slate-300 font-normal">Unit</span></p>
+            </div>
+        </div>
+
+        <div class="bg-white/5 p-3 rounded-2xl border border-white/10 flex items-center space-x-2.5">
+            <div class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-base shrink-0">
+                📦
+            </div>
+            <div>
+                <p class="text-[9px] text-slate-400 font-bold uppercase">Update Stok</p>
+                <p class="font-black text-amber-400 text-sm">{{ number_format($todayStockUpdatedCount) }} <span class="text-[9px] text-slate-300 font-normal">Kali</span></p>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- 3D Glassmorphism Action Grid Menu -->
 <div class="mb-6">
     <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 px-1">Menu Utama</h3>

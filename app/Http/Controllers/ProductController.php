@@ -35,6 +35,8 @@ class ProductController extends Controller
             'stock' => 'required|integer|min:0',
             'image' => 'nullable|image|max:4096',
             'tenant_id' => 'nullable|exists:tenants,id',
+            'created_at' => 'nullable|string',
+            'updated_at' => 'nullable|string',
         ]);
 
         $user = Auth::user();
@@ -54,7 +56,7 @@ class ProductController extends Controller
 
         $barcode = $request->barcode ?: 'BRD' . date('Ymd') . rand(1000, 9999);
 
-        Product::create([
+        $productData = [
             'tenant_id' => $tenantId,
             'name' => $request->name,
             'barcode' => $barcode,
@@ -63,7 +65,17 @@ class ProductController extends Controller
             'harga_jual' => $request->harga_jual,
             'stock' => $request->stock,
             'is_active' => true,
-        ]);
+        ];
+
+        if ($request->filled('created_at')) {
+            $productData['created_at'] = \Carbon\Carbon::parse($request->created_at);
+        }
+
+        if ($request->filled('updated_at')) {
+            $productData['updated_at'] = \Carbon\Carbon::parse($request->updated_at);
+        }
+
+        Product::create($productData);
 
         return back()->with('success', 'Produk berhasil ditambahkan!');
     }
@@ -77,6 +89,8 @@ class ProductController extends Controller
             'harga_jual' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
             'image' => 'nullable|image|max:4096',
+            'created_at' => 'nullable|string',
+            'updated_at' => 'nullable|string',
         ]);
 
         $barcode = $request->barcode ?: ($product->barcode ?: 'BRD' . date('Ymd') . rand(1000, 9999));
@@ -91,6 +105,16 @@ class ProductController extends Controller
 
         if ($request->hasFile('image')) {
             $data['image'] = $request->file('image')->store('products', 'public');
+        }
+
+        if ($request->filled('created_at')) {
+            $data['created_at'] = \Carbon\Carbon::parse($request->created_at);
+        }
+
+        if ($request->filled('updated_at')) {
+            $data['updated_at'] = \Carbon\Carbon::parse($request->updated_at);
+        } else {
+            $data['updated_at'] = now();
         }
 
         $product->update($data);

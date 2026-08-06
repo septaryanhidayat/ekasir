@@ -102,6 +102,18 @@
             }
         });
         return result;
+    },
+
+    formatDateTimeLocal(dateStr) {
+        if (!dateStr) return '';
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) return '';
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        const hours = String(d.getHours()).padStart(2, '0');
+        const minutes = String(d.getMinutes()).padStart(2, '0');
+        return `${year}-${month}-${day}T${hours}:${minutes}`;
     }
 }">
     <!-- Action Header -->
@@ -354,6 +366,17 @@
                     <input type="number" name="stock" value="50" required class="w-full px-3 py-2 bg-slate-100 rounded-xl border border-slate-200">
                 </div>
 
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Tanggal Masuk (WIB)</label>
+                        <input type="datetime-local" name="created_at" value="{{ now('Asia/Jakarta')->format('Y-m-d\TH:i') }}" class="w-full px-3 py-2 bg-slate-100 rounded-xl border border-slate-200 text-slate-700 font-semibold">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Tanggal Update (WIB)</label>
+                        <input type="datetime-local" name="updated_at" value="{{ now('Asia/Jakarta')->format('Y-m-d\TH:i') }}" class="w-full px-3 py-2 bg-slate-100 rounded-xl border border-slate-200 text-slate-700 font-semibold">
+                    </div>
+                </div>
+
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">Foto Produk</label>
                     <input type="file" name="image" class="w-full text-slate-500">
@@ -370,7 +393,7 @@
     <!-- Modal Edit Product -->
     <div x-show="editModal" x-transition class="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" style="display: none;">
         <div @click.away="editModal = false" class="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
-            <h3 class="font-extrabold text-slate-800 text-base">Edit Produk</h3>
+            <h3 class="font-extrabold text-slate-800 text-base">Edit Produk & Atur Tanggal Stok</h3>
 
             <form :action="'{{ url('desktop/products') }}/' + selectedProduct.id" method="POST" enctype="multipart/form-data" class="space-y-3 text-xs">
                 @csrf
@@ -404,6 +427,17 @@
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">Stok</label>
                     <input type="number" name="stock" x-model="selectedProduct.stock" required class="w-full px-3 py-2 bg-slate-100 rounded-xl border border-slate-200">
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Tanggal Masuk (WIB)</label>
+                        <input type="datetime-local" name="created_at" :value="formatDateTimeLocal(selectedProduct.created_at)" class="w-full px-3 py-2 bg-slate-100 rounded-xl border border-slate-200 text-slate-700 font-semibold">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Tanggal Update (WIB)</label>
+                        <input type="datetime-local" name="updated_at" :value="formatDateTimeLocal(selectedProduct.updated_at)" class="w-full px-3 py-2 bg-slate-100 rounded-xl border border-slate-200 text-slate-700 font-semibold">
+                    </div>
                 </div>
 
                 <div>

@@ -63,6 +63,53 @@
     </div>
 </div>
 
+<!-- Aktivitas Stok & Penjualan Hari Ini (WIB) Card Banner -->
+<div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white rounded-3xl p-6 shadow-xl mb-8 border border-slate-800">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4 pb-4 border-b border-slate-800">
+        <div>
+            <span class="px-3 py-1 bg-indigo-500/20 text-indigo-300 font-extrabold text-[10px] rounded-full uppercase tracking-wider border border-indigo-500/30">
+                Aktivitas Hari Ini ({{ now('Asia/Jakarta')->format('d M Y') }} - WIB)
+            </span>
+            <h3 class="text-lg font-black text-white mt-1">Ringkasan Barang Terjual & Perubahan Stok</h3>
+        </div>
+        <a href="{{ route('desktop.products.index') }}" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl transition shrink-0 self-start md:self-auto">
+            Kelola Stok Barang &rarr;
+        </a>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-lg shrink-0">
+                🛍️
+            </div>
+            <div>
+                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Barang Terjual Hari Ini</p>
+                <p class="text-xl font-black text-emerald-400">{{ number_format($todayItemsSold) }} <span class="text-xs font-normal text-slate-300">Unit / Pcs</span></p>
+            </div>
+        </div>
+
+        <div class="bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold text-lg shrink-0">
+                📦
+            </div>
+            <div>
+                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Barang Baru Ditambah Hari Ini</p>
+                <p class="text-xl font-black text-blue-400">{{ number_format($todayProductsAddedCount) }} <span class="text-xs font-normal text-slate-300">Jenis Produk</span></p>
+            </div>
+        </div>
+
+        <div class="bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-lg shrink-0">
+                🔄
+            </div>
+            <div>
+                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Stok Diupdate Hari Ini</p>
+                <p class="text-xl font-black text-amber-400">{{ number_format($todayStockUpdatedCount) }} <span class="text-xs font-normal text-slate-300">Kali Restok</span></p>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Chart Section & Low Stock Warning -->
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
     <!-- Chart Penjualan 7 Hari -->

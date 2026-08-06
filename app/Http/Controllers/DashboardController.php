@@ -93,6 +93,17 @@ class DashboardController extends Controller
             }
         }
 
+        // Daily Stock & Sales Activity
+        $todayItemsSold = \App\Models\TransactionDetail::whereHas('transaction', function ($q) use ($isSuperAdmin, $activeTenantId) {
+            $q->whereDate('created_at', now()->today());
+            if (!$isSuperAdmin || $activeTenantId) {
+                $q->where('tenant_id', $activeTenantId);
+            }
+        })->sum('qty');
+
+        $todayStockUpdatedCount = Product::whereDate('updated_at', now()->today())->count();
+        $todayProductsAddedCount = Product::whereDate('created_at', now()->today())->count();
+
         return view('desktop.dashboard', compact(
             'user',
             'isSuperAdmin',
@@ -108,7 +119,10 @@ class DashboardController extends Controller
             'chartLabels',
             'chartSalesData',
             'chartProfitData',
-            'outletStats'
+            'outletStats',
+            'todayItemsSold',
+            'todayStockUpdatedCount',
+            'todayProductsAddedCount'
         ));
     }
 }
