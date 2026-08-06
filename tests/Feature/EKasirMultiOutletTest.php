@@ -183,4 +183,35 @@ class EKasirMultiOutletTest extends TestCase
         $response->assertSee('INV/20260805/0001');
         $response->assertSee('Ahmad (Online)');
     }
+
+    public function test_customer_can_track_order_without_404(): void
+    {
+        $tenant = Tenant::create([
+            'name' => 'Kantin SD Robbani',
+            'code' => 'OUT-SD',
+        ]);
+
+        $transaction = Transaction::create([
+            'invoice_number' => 'INV/20260806/0004',
+            'tenant_id' => $tenant->id,
+            'user_id' => null,
+            'customer_name' => 'Budi Siswa',
+            'customer_phone' => '081234567890',
+            'order_type' => 'dine_in',
+            'order_source' => 'customer_app',
+            'order_status' => 'paid',
+            'total_hpp' => 5000,
+            'total_amount' => 10000,
+            'cash_paid' => 10000,
+            'change_amount' => 0,
+            'payment_method' => 'qris',
+            'status' => 'completed',
+        ]);
+
+        $response = $this->get(route('shop.track', $transaction->id));
+
+        $response->assertStatus(200);
+        $response->assertSee('INV/20260806/0004');
+        $response->assertSee('Budi Siswa');
+    }
 }

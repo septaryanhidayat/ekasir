@@ -38,7 +38,23 @@
 
                     <h4 class="font-extrabold text-slate-900 text-base mb-1">{{ $t->name }}</h4>
                     <p class="text-xs text-slate-500 mb-2">{{ $t->address ?? 'Alamat belum diatur' }}</p>
-                    <p class="text-xs text-slate-400">Telp: {{ $t->phone ?? '-' }}</p>
+                    <p class="text-xs text-slate-400 mb-3">Telp: {{ $t->phone ?? '-' }}</p>
+
+                    <!-- Payment Methods Badges / Details -->
+                    <div class="p-3 bg-slate-50 rounded-2xl border border-slate-100 space-y-1.5 text-[11px]">
+                        <div class="flex items-start space-x-1.5 text-slate-600">
+                            <span class="font-bold text-indigo-600 min-w-[55px]">Bank:</span>
+                            <span class="font-semibold text-slate-800">{{ $t->bank_info ?? 'Belum diatur' }}</span>
+                        </div>
+                        <div class="flex items-start space-x-1.5 text-slate-600">
+                            <span class="font-bold text-teal-600 min-w-[55px]">E-Wallet:</span>
+                            <span class="font-semibold text-slate-800">{{ $t->ewallet_info ?? 'Belum diatur' }}</span>
+                        </div>
+                        <div class="flex items-start space-x-1.5 text-slate-600">
+                            <span class="font-bold text-emerald-600 min-w-[55px]">QRIS:</span>
+                            <span class="font-semibold text-slate-800">{{ $t->qris_info ?? 'Standard Auto-Generate' }}</span>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-xs">
@@ -67,7 +83,7 @@
 
     <!-- Modal Add Tenant -->
     <div x-show="showAddModal" x-transition class="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" style="display: none;">
-        <div @click.away="showAddModal = false" class="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl space-y-4">
+        <div @click.away="showAddModal = false" class="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
             <h3 class="font-extrabold text-slate-800 text-base">Tambah Outlet Cabang Baru</h3>
 
             <form action="{{ route('desktop.tenants.store') }}" method="POST" class="space-y-3 text-xs">
@@ -92,6 +108,27 @@
                     <input type="text" name="phone" placeholder="08..." class="w-full px-3 py-2 bg-slate-100 rounded-xl border border-slate-200">
                 </div>
 
+                <div class="pt-2 border-t border-slate-100">
+                    <h5 class="font-extrabold text-indigo-600 mb-2">Setting Rekening & QRIS</h5>
+                    
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">Nomor Rekening Bank</label>
+                            <input type="text" name="bank_info" placeholder="BCA 1234567890 a/n Kantin" class="w-full px-3 py-2 bg-slate-100 rounded-xl border border-slate-200">
+                        </div>
+
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">E-Wallet (GoPay/OVO/DANA)</label>
+                            <input type="text" name="ewallet_info" placeholder="081234567890 a/n Kantin" class="w-full px-3 py-2 bg-slate-100 rounded-xl border border-slate-200">
+                        </div>
+
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">Info / Code Payload QRIS</label>
+                            <input type="text" name="qris_info" placeholder="NMID / Code QRIS Static / Text" class="w-full px-3 py-2 bg-slate-100 rounded-xl border border-slate-200">
+                        </div>
+                    </div>
+                </div>
+
                 <div class="flex justify-end space-x-2 pt-2">
                     <button type="button" @click="showAddModal = false" class="px-4 py-2 bg-slate-100 text-slate-600 font-bold rounded-xl">Batal</button>
                     <button type="submit" class="px-4 py-2 bg-indigo-600 text-white font-bold rounded-xl">Simpan Outlet</button>
@@ -102,8 +139,8 @@
 
     <!-- Modal Edit Tenant -->
     <div x-show="editModal" x-transition class="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" style="display: none;">
-        <div @click.away="editModal = false" class="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl space-y-4">
-            <h3 class="font-extrabold text-slate-800 text-base">Edit Outlet</h3>
+        <div @click.away="editModal = false" class="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+            <h3 class="font-extrabold text-slate-800 text-base">Edit Setting Outlet & Pembayaran</h3>
 
             <form :action="'/desktop/tenants/' + selectedTenant.id" method="POST" class="space-y-3 text-xs">
                 @csrf
@@ -128,9 +165,30 @@
                     <input type="text" name="phone" x-model="selectedTenant.phone" class="w-full px-3 py-2 bg-slate-100 rounded-xl border border-slate-200">
                 </div>
 
+                <div class="pt-2 border-t border-slate-100">
+                    <h5 class="font-extrabold text-indigo-600 mb-2">Setting Rekening, E-Wallet & QRIS</h5>
+                    
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">Nomor Rekening Bank</label>
+                            <input type="text" name="bank_info" x-model="selectedTenant.bank_info" placeholder="Contoh: BCA 1234567890 a/n Kantin Robbani" class="w-full px-3 py-2 bg-slate-100 rounded-xl border border-slate-200">
+                        </div>
+
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">E-Wallet (GoPay/OVO/DANA)</label>
+                            <input type="text" name="ewallet_info" x-model="selectedTenant.ewallet_info" placeholder="Contoh: 081234567890 a/n Robbani Mart" class="w-full px-3 py-2 bg-slate-100 rounded-xl border border-slate-200">
+                        </div>
+
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">Info / Payload QRIS (NMID/Code)</label>
+                            <input type="text" name="qris_info" x-model="selectedTenant.qris_info" placeholder="Contoh: ID10293847561 atau Kode QRIS Static" class="w-full px-3 py-2 bg-slate-100 rounded-xl border border-slate-200">
+                        </div>
+                    </div>
+                </div>
+
                 <div class="flex justify-end space-x-2 pt-2">
                     <button type="button" @click="editModal = false" class="px-4 py-2 bg-slate-100 text-slate-600 font-bold rounded-xl">Batal</button>
-                    <button type="submit" class="px-4 py-2 bg-indigo-600 text-white font-bold rounded-xl">Update</button>
+                    <button type="submit" class="px-4 py-2 bg-indigo-600 text-white font-bold rounded-xl">Update Setting</button>
                 </div>
             </form>
         </div>

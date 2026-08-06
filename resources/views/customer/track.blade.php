@@ -74,18 +74,37 @@
         </div>
     </div>
 
-    <!-- QRIS Payment Barcode Simulator (if payment_method is qris) -->
+    <!-- Payment Instruction Card -->
     @if($transaction->payment_method === 'qris')
         <div class="bg-indigo-50 border border-indigo-200 rounded-3xl p-5 text-center space-y-3">
-            <span class="px-3 py-1 bg-indigo-600 text-white text-[10px] font-black rounded-full uppercase tracking-wider">Metode QRIS Instant</span>
-            <p class="text-xs text-slate-600">Scan QRIS ini menggunakan GoPay / OVO / Dana / Mobile Banking Anda:</p>
+            <span class="px-3 py-1 bg-indigo-600 text-white text-[10px] font-black rounded-full uppercase tracking-wider">Metode Pembayaran QRIS</span>
+            <p class="text-xs text-slate-600">Scan QRIS ini menggunakan GoPay / OVO / Dana / LinkAja / Mobile Banking Anda:</p>
             
             <div class="p-4 bg-white rounded-2xl inline-block shadow-md">
-                <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data={{ urlencode($transaction->invoice_number) }}" 
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data={{ urlencode($transaction->tenant?->effective_qris_info ?? $transaction->invoice_number) }}" 
                      alt="QRIS Barcode" 
                      class="w-44 h-44 mx-auto">
-                <p class="font-mono text-[10px] text-slate-400 mt-2">NMID: ID10293847561</p>
+                <p class="font-mono text-[10px] text-slate-500 font-bold mt-2">NMID / ID: {{ $transaction->tenant?->effective_qris_info ?? 'ID10293847561' }}</p>
             </div>
+
+            @if($transaction->tenant?->effective_bank_info || $transaction->tenant?->effective_ewallet_info)
+                <div class="pt-3 border-t border-indigo-100 text-left text-xs space-y-1 bg-white/70 p-3 rounded-2xl">
+                    <p class="font-extrabold text-slate-800 text-[11px] mb-1">Opsi Transfer Alternatif Toko:</p>
+                    @if($transaction->tenant?->effective_bank_info)
+                        <div class="flex justify-between text-slate-700">
+                            <span>Rekening Bank:</span>
+                            <span class="font-bold text-indigo-700">{{ $transaction->tenant->effective_bank_info }}</span>
+                        </div>
+                    @endif
+                    @if($transaction->tenant?->effective_ewallet_info)
+                        <div class="flex justify-between text-slate-700">
+                            <span>E-Wallet:</span>
+                            <span class="font-bold text-teal-700">{{ $transaction->tenant->effective_ewallet_info }}</span>
+                        </div>
+                    @endif
+                </div>
+            @endif
+
             <p class="font-extrabold text-indigo-700 text-sm">Total Bayar: Rp {{ number_format($transaction->total_amount, 0, ',', '.') }}</p>
         </div>
     @endif

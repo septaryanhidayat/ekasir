@@ -15,6 +15,9 @@ class Tenant extends Model
         'code',
         'address',
         'phone',
+        'bank_info',
+        'ewallet_info',
+        'qris_info',
         'is_active',
     ];
 
@@ -45,5 +48,20 @@ class Tenant extends Model
     public function cashFlows(): HasMany
     {
         return $this->hasMany(CashFlow::class);
+    }
+
+    public function getEffectiveBankInfoAttribute(): ?string
+    {
+        return $this->bank_info ?: static::whereNotNull('bank_info')->where('bank_info', '!=', '')->value('bank_info');
+    }
+
+    public function getEffectiveEwalletInfoAttribute(): ?string
+    {
+        return $this->ewallet_info ?: static::whereNotNull('ewallet_info')->where('ewallet_info', '!=', '')->value('ewallet_info');
+    }
+
+    public function getEffectiveQrisInfoAttribute(): ?string
+    {
+        return $this->qris_info ?: static::whereNotNull('qris_info')->where('qris_info', '!=', '')->value('qris_info');
     }
 }

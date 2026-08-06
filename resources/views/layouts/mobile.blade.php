@@ -62,7 +62,7 @@
 
 <div class="mobile-container overflow-x-hidden">
     <!-- Header Mobile Banking -->
-    <header class="banking-gradient text-white pt-6 pb-12 px-5 rounded-b-[2rem] shadow-xl relative">
+    <header class="banking-gradient text-white pt-6 pb-12 px-5 rounded-b-[2rem] shadow-xl relative no-print">
         <div class="flex items-center justify-between mb-4">
             <div class="flex items-center space-x-3">
                 <div class="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center font-bold text-white shadow-inner border border-white/30 text-lg">
@@ -117,7 +117,7 @@
     </main>
 
     <!-- Bottom Navigation Bar (Banking Style) -->
-    <nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] bg-white/95 backdrop-blur-md border-t border-slate-200/80 px-4 py-2.5 flex justify-around items-center z-50 shadow-2xl">
+    <nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] bg-white/95 backdrop-blur-md border-t border-slate-200/80 px-4 py-2.5 flex justify-around items-center z-50 shadow-2xl no-print">
         <a href="{{ route('mobile.dashboard') }}" 
            class="flex flex-col items-center text-xs font-medium {{ request()->routeIs('mobile.dashboard') ? 'text-indigo-600 font-bold' : 'text-slate-400 hover:text-slate-600' }}">
             <svg class="w-6 h-6 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

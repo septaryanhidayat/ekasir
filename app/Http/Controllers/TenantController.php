@@ -20,6 +20,9 @@ class TenantController extends Controller
             'code' => 'required|string|max:50|unique:tenants,code',
             'address' => 'nullable|string|max:500',
             'phone' => 'nullable|string|max:50',
+            'bank_info' => 'nullable|string|max:255',
+            'ewallet_info' => 'nullable|string|max:255',
+            'qris_info' => 'nullable|string|max:500',
         ]);
 
         Tenant::create([
@@ -27,6 +30,9 @@ class TenantController extends Controller
             'code' => strtoupper($request->code),
             'address' => $request->address,
             'phone' => $request->phone,
+            'bank_info' => $request->bank_info,
+            'ewallet_info' => $request->ewallet_info,
+            'qris_info' => $request->qris_info,
             'is_active' => true,
         ]);
 
@@ -40,6 +46,9 @@ class TenantController extends Controller
             'code' => 'required|string|max:50|unique:tenants,code,' . $tenant->id,
             'address' => 'nullable|string|max:500',
             'phone' => 'nullable|string|max:50',
+            'bank_info' => 'nullable|string|max:255',
+            'ewallet_info' => 'nullable|string|max:255',
+            'qris_info' => 'nullable|string|max:500',
         ]);
 
         $tenant->update([
@@ -47,6 +56,9 @@ class TenantController extends Controller
             'code' => strtoupper($request->code),
             'address' => $request->address,
             'phone' => $request->phone,
+            'bank_info' => $request->bank_info,
+            'ewallet_info' => $request->ewallet_info,
+            'qris_info' => $request->qris_info,
         ]);
 
         return back()->with('success', 'Data outlet berhasil diperbarui!');

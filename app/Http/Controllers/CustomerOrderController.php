@@ -142,9 +142,12 @@ class CustomerOrderController extends Controller
         }
     }
 
-    public function track(Transaction $transaction)
+    public function track($id)
     {
-        $transaction->load(['details', 'tenant']);
+        $transaction = Transaction::withoutGlobalScopes()
+            ->with(['details', 'tenant'])
+            ->findOrFail($id);
+
         return view('customer.track', compact('transaction'));
     }
 
