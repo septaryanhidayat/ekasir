@@ -41,18 +41,47 @@
                     <p class="text-xs text-slate-400 mb-3">Telp: {{ $t->phone ?? '-' }}</p>
 
                     <!-- Payment Methods Badges / Details -->
-                    <div class="p-3 bg-slate-50 rounded-2xl border border-slate-100 space-y-1.5 text-[11px]">
-                        <div class="flex items-start space-x-1.5 text-slate-600">
-                            <span class="font-bold text-indigo-600 min-w-[55px]">Bank:</span>
-                            <span class="font-semibold text-slate-800">{{ $t->bank_info ?? 'Belum diatur' }}</span>
+                    <div class="p-3 bg-slate-50 rounded-2xl border border-slate-100 space-y-2 text-[11px]">
+                        @php
+                            $bankNum = $t->effective_bank_account_number ?: preg_replace('/[^0-9]/', '', $t->effective_bank_info);
+                        @endphp
+                        <div class="flex items-center justify-between text-slate-600">
+                            <div class="truncate pr-2">
+                                <span class="font-bold text-indigo-600">Bank:</span>
+                                <span class="font-semibold text-slate-800">{{ $t->effective_bank_info ?? 'Belum diatur (Pusat)' }}</span>
+                            </div>
+                            @if($bankNum)
+                                <button onclick="copyTextToClipboard('{{ e($bankNum) }}').then(() => alert('No. Rekening {{ e($bankNum) }} tersalin!'))" class="px-2 py-0.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 font-bold rounded text-[10px] shrink-0">
+                                    Salin No.
+                                </button>
+                            @endif
                         </div>
-                        <div class="flex items-start space-x-1.5 text-slate-600">
-                            <span class="font-bold text-teal-600 min-w-[55px]">E-Wallet:</span>
-                            <span class="font-semibold text-slate-800">{{ $t->ewallet_info ?? 'Belum diatur' }}</span>
+
+                        @php
+                            $ewalletNum = $t->effective_ewallet_account_number ?: preg_replace('/[^0-9]/', '', $t->effective_ewallet_info);
+                        @endphp
+                        <div class="flex items-center justify-between text-slate-600">
+                            <div class="truncate pr-2">
+                                <span class="font-bold text-teal-600">E-Wallet:</span>
+                                <span class="font-semibold text-slate-800">{{ $t->effective_ewallet_info ?? 'Belum diatur (Pusat)' }}</span>
+                            </div>
+                            @if($ewalletNum)
+                                <button onclick="copyTextToClipboard('{{ e($ewalletNum) }}').then(() => alert('Info E-Wallet {{ e($ewalletNum) }} tersalin!'))" class="px-2 py-0.5 bg-teal-50 hover:bg-teal-100 text-teal-600 font-bold rounded text-[10px] shrink-0">
+                                    Salin No.
+                                </button>
+                            @endif
                         </div>
-                        <div class="flex items-start space-x-1.5 text-slate-600">
-                            <span class="font-bold text-emerald-600 min-w-[55px]">QRIS:</span>
-                            <span class="font-semibold text-slate-800">{{ $t->qris_info ?? 'Standard Auto-Generate' }}</span>
+
+                        <div class="flex items-center justify-between text-slate-600">
+                            <div class="truncate pr-2">
+                                <span class="font-bold text-emerald-600">QRIS:</span>
+                                <span class="font-semibold text-slate-800">{{ $t->qris_info ?? 'Standard Auto-Generate' }}</span>
+                            </div>
+                            @if($t->effective_qris_info)
+                                <button onclick="copyTextToClipboard('{{ e($t->effective_qris_info) }}').then(() => alert('Kode QRIS {{ e($t->effective_qris_info) }} tersalin!'))" class="px-2 py-0.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 font-bold rounded text-[10px] shrink-0">
+                                    Salin Code
+                                </button>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -65,13 +94,13 @@
                     </div>
 
                     <div class="flex items-center space-x-2">
-                        <button @click="editModal = true; selectedTenant = {{ json_encode($t) }}" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg">
-                            Edit
+                        <button @click="selectedTenant = {{ json_encode($t) }}; editModal = true" class="px-3 py-1.5 bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 font-bold text-slate-600 rounded-xl transition">
+                            Edit Outlet
                         </button>
-
-                        <form action="{{ route('desktop.tenants.toggle', $t->id) }}" method="POST">
+                        <form action="{{ route('desktop.tenants.toggle-status', $t->id) }}" method="POST">
                             @csrf
-                            <button type="submit" class="px-3 py-1.5 {{ $t->is_active ? 'bg-rose-50 text-rose-600' : 'bg-emerald-50 text-emerald-600' }} font-bold rounded-lg">
+                            @method('PATCH')
+                            <button type="submit" class="px-3 py-1.5 font-bold rounded-xl transition {{ $t->is_active ? 'bg-rose-50 text-rose-600 hover:bg-rose-100' : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100' }}">
                                 {{ $t->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
                             </button>
                         </form>
@@ -83,7 +112,7 @@
 
     <!-- Modal Add Tenant -->
     <div x-show="showAddModal" x-transition class="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" style="display: none;">
-        <div @click.away="showAddModal = false" class="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+        <div @click.away="showAddModal = false" class="bg-white rounded-3xl p-6 w-full max-w-lg shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
             <h3 class="font-extrabold text-slate-800 text-base">Tambah Outlet Cabang Baru</h3>
 
             <form action="{{ route('desktop.tenants.store') }}" method="POST" class="space-y-3 text-xs">
@@ -108,24 +137,48 @@
                     <input type="text" name="phone" placeholder="08..." class="w-full px-3 py-2 bg-slate-100 rounded-xl border border-slate-200">
                 </div>
 
-                <div class="pt-2 border-t border-slate-100">
-                    <h5 class="font-extrabold text-indigo-600 mb-2">Setting Rekening & QRIS</h5>
+                <div class="pt-2 border-t border-slate-100 space-y-3">
+                    <h5 class="font-extrabold text-indigo-600">Setting Rekening & QRIS Outlet</h5>
                     
-                    <div class="space-y-3">
-                        <div>
-                            <label class="block font-bold text-slate-700 mb-1">Nomor Rekening Bank</label>
-                            <input type="text" name="bank_info" placeholder="BCA 1234567890 a/n Kantin" class="w-full px-3 py-2 bg-slate-100 rounded-xl border border-slate-200">
+                    <div class="p-3 bg-indigo-50/50 rounded-2xl border border-indigo-100 space-y-2">
+                        <p class="font-bold text-indigo-800 text-[11px]">Rincian Rekening Bank (Agar Salin Angka Saja):</p>
+                        <div class="grid grid-cols-3 gap-2">
+                            <div>
+                                <label class="block font-semibold text-slate-600 text-[10px] mb-0.5">Nama Bank</label>
+                                <input type="text" name="bank_name" placeholder="BCA / Mandiri" class="w-full px-2.5 py-1.5 bg-white rounded-xl border border-slate-200">
+                            </div>
+                            <div>
+                                <label class="block font-semibold text-slate-600 text-[10px] mb-0.5">Nomor Rekening</label>
+                                <input type="text" name="bank_account_number" placeholder="1234567890" class="w-full px-2.5 py-1.5 bg-white rounded-xl border border-slate-200 font-mono">
+                            </div>
+                            <div>
+                                <label class="block font-semibold text-slate-600 text-[10px] mb-0.5">Atas Nama (a/n)</label>
+                                <input type="text" name="bank_account_holder" placeholder="Kantin Robbani" class="w-full px-2.5 py-1.5 bg-white rounded-xl border border-slate-200">
+                            </div>
                         </div>
+                    </div>
 
-                        <div>
-                            <label class="block font-bold text-slate-700 mb-1">E-Wallet (GoPay/OVO/DANA)</label>
-                            <input type="text" name="ewallet_info" placeholder="081234567890 a/n Kantin" class="w-full px-3 py-2 bg-slate-100 rounded-xl border border-slate-200">
+                    <div class="p-3 bg-teal-50/50 rounded-2xl border border-teal-100 space-y-2">
+                        <p class="font-bold text-teal-800 text-[11px]">Rincian E-Wallet (Agar Salin Angka Saja):</p>
+                        <div class="grid grid-cols-3 gap-2">
+                            <div>
+                                <label class="block font-semibold text-slate-600 text-[10px] mb-0.5">Nama E-Wallet</label>
+                                <input type="text" name="ewallet_name" placeholder="GoPay / OVO / DANA" class="w-full px-2.5 py-1.5 bg-white rounded-xl border border-slate-200">
+                            </div>
+                            <div>
+                                <label class="block font-semibold text-slate-600 text-[10px] mb-0.5">Nomor HP/Akun</label>
+                                <input type="text" name="ewallet_account_number" placeholder="081234567890" class="w-full px-2.5 py-1.5 bg-white rounded-xl border border-slate-200 font-mono">
+                            </div>
+                            <div>
+                                <label class="block font-semibold text-slate-600 text-[10px] mb-0.5">Atas Nama (a/n)</label>
+                                <input type="text" name="ewallet_account_holder" placeholder="Robbani Mart" class="w-full px-2.5 py-1.5 bg-white rounded-xl border border-slate-200">
+                            </div>
                         </div>
+                    </div>
 
-                        <div>
-                            <label class="block font-bold text-slate-700 mb-1">Info / Code Payload QRIS</label>
-                            <input type="text" name="qris_info" placeholder="NMID / Code QRIS Static / Text" class="w-full px-3 py-2 bg-slate-100 rounded-xl border border-slate-200">
-                        </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Payload / NMID QRIS (Code String)</label>
+                        <input type="text" name="qris_info" placeholder="Contoh: ID10293847561" class="w-full px-3 py-2 bg-slate-100 rounded-xl border border-slate-200">
                     </div>
                 </div>
 
@@ -139,10 +192,10 @@
 
     <!-- Modal Edit Tenant -->
     <div x-show="editModal" x-transition class="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" style="display: none;">
-        <div @click.away="editModal = false" class="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
-            <h3 class="font-extrabold text-slate-800 text-base">Edit Setting Outlet & Pembayaran</h3>
+        <div @click.away="editModal = false" class="bg-white rounded-3xl p-6 w-full max-w-lg shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+            <h3 class="font-extrabold text-slate-800 text-base">Edit Data Outlet</h3>
 
-            <form :action="'/desktop/tenants/' + selectedTenant.id" method="POST" class="space-y-3 text-xs">
+            <form :action="'{{ url('desktop/tenants') }}/' + selectedTenant.id" method="POST" class="space-y-3 text-xs">
                 @csrf
                 @method('PUT')
                 <div>
@@ -165,24 +218,48 @@
                     <input type="text" name="phone" x-model="selectedTenant.phone" class="w-full px-3 py-2 bg-slate-100 rounded-xl border border-slate-200">
                 </div>
 
-                <div class="pt-2 border-t border-slate-100">
-                    <h5 class="font-extrabold text-indigo-600 mb-2">Setting Rekening, E-Wallet & QRIS</h5>
+                <div class="pt-2 border-t border-slate-100 space-y-3">
+                    <h5 class="font-extrabold text-indigo-600">Setting Rekening, E-Wallet & QRIS</h5>
                     
-                    <div class="space-y-3">
-                        <div>
-                            <label class="block font-bold text-slate-700 mb-1">Nomor Rekening Bank</label>
-                            <input type="text" name="bank_info" x-model="selectedTenant.bank_info" placeholder="Contoh: BCA 1234567890 a/n Kantin Robbani" class="w-full px-3 py-2 bg-slate-100 rounded-xl border border-slate-200">
+                    <div class="p-3 bg-indigo-50/50 rounded-2xl border border-indigo-100 space-y-2">
+                        <p class="font-bold text-indigo-800 text-[11px]">Rincian Rekening Bank (Agar Salin Angka Saja):</p>
+                        <div class="grid grid-cols-3 gap-2">
+                            <div>
+                                <label class="block font-semibold text-slate-600 text-[10px] mb-0.5">Nama Bank</label>
+                                <input type="text" name="bank_name" x-model="selectedTenant.bank_name" placeholder="BCA / Mandiri" class="w-full px-2.5 py-1.5 bg-white rounded-xl border border-slate-200">
+                            </div>
+                            <div>
+                                <label class="block font-semibold text-slate-600 text-[10px] mb-0.5">Nomor Rekening</label>
+                                <input type="text" name="bank_account_number" x-model="selectedTenant.bank_account_number" placeholder="1234567890" class="w-full px-2.5 py-1.5 bg-white rounded-xl border border-slate-200 font-mono">
+                            </div>
+                            <div>
+                                <label class="block font-semibold text-slate-600 text-[10px] mb-0.5">Atas Nama (a/n)</label>
+                                <input type="text" name="bank_account_holder" x-model="selectedTenant.bank_account_holder" placeholder="Kantin Robbani" class="w-full px-2.5 py-1.5 bg-white rounded-xl border border-slate-200">
+                            </div>
                         </div>
+                    </div>
 
-                        <div>
-                            <label class="block font-bold text-slate-700 mb-1">E-Wallet (GoPay/OVO/DANA)</label>
-                            <input type="text" name="ewallet_info" x-model="selectedTenant.ewallet_info" placeholder="Contoh: 081234567890 a/n Robbani Mart" class="w-full px-3 py-2 bg-slate-100 rounded-xl border border-slate-200">
+                    <div class="p-3 bg-teal-50/50 rounded-2xl border border-teal-100 space-y-2">
+                        <p class="font-bold text-teal-800 text-[11px]">Rincian E-Wallet (Agar Salin Angka Saja):</p>
+                        <div class="grid grid-cols-3 gap-2">
+                            <div>
+                                <label class="block font-semibold text-slate-600 text-[10px] mb-0.5">Nama E-Wallet</label>
+                                <input type="text" name="ewallet_name" x-model="selectedTenant.ewallet_name" placeholder="GoPay / OVO / DANA" class="w-full px-2.5 py-1.5 bg-white rounded-xl border border-slate-200">
+                            </div>
+                            <div>
+                                <label class="block font-semibold text-slate-600 text-[10px] mb-0.5">Nomor HP/Akun</label>
+                                <input type="text" name="ewallet_account_number" x-model="selectedTenant.ewallet_account_number" placeholder="081234567890" class="w-full px-2.5 py-1.5 bg-white rounded-xl border border-slate-200 font-mono">
+                            </div>
+                            <div>
+                                <label class="block font-semibold text-slate-600 text-[10px] mb-0.5">Atas Nama (a/n)</label>
+                                <input type="text" name="ewallet_account_holder" x-model="selectedTenant.ewallet_account_holder" placeholder="Robbani Mart" class="w-full px-2.5 py-1.5 bg-white rounded-xl border border-slate-200">
+                            </div>
                         </div>
+                    </div>
 
-                        <div>
-                            <label class="block font-bold text-slate-700 mb-1">Info / Payload QRIS (NMID/Code)</label>
-                            <input type="text" name="qris_info" x-model="selectedTenant.qris_info" placeholder="Contoh: ID10293847561 atau Kode QRIS Static" class="w-full px-3 py-2 bg-slate-100 rounded-xl border border-slate-200">
-                        </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Info / Payload QRIS (NMID/Code)</label>
+                        <input type="text" name="qris_info" x-model="selectedTenant.qris_info" placeholder="Contoh: ID10293847561" class="w-full px-3 py-2 bg-slate-100 rounded-xl border border-slate-200">
                     </div>
                 </div>
 
@@ -194,4 +271,27 @@
         </div>
     </div>
 </div>
+
+@push('scripts')
+<script>
+function copyTextToClipboard(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+        return navigator.clipboard.writeText(text);
+    } else {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-999999px";
+        textArea.style.top = "-999999px";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        return new Promise((resolve, reject) => {
+            document.execCommand('copy') ? resolve() : reject();
+            textArea.remove();
+        });
+    }
+}
+</script>
+@endpush
 @endsection

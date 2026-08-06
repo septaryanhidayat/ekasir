@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Status Pesanan #{{ $transaction->invoice_number }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -29,7 +30,7 @@
         <a href="{{ route('shop.index') }}" class="p-2.5 bg-slate-100 rounded-2xl text-slate-700 text-xs font-bold flex items-center">
             &larr; Kembali ke Shop
         </a>
-        <span class="text-xs font-extrabold text-indigo-600 uppercase tracking-wider">{{ $transaction->tenant->name }}</span>
+        <span class="text-xs font-extrabold text-indigo-600 uppercase tracking-wider">{{ $transaction->tenant?->name }}</span>
     </div>
 
     <!-- Status Card Timeline -->
@@ -76,9 +77,9 @@
 
     <!-- Payment Instruction Card -->
     @if($transaction->payment_method === 'qris')
-        <div class="bg-indigo-50 border border-indigo-200 rounded-3xl p-5 text-center space-y-3">
-            <span class="px-3 py-1 bg-indigo-600 text-white text-[10px] font-black rounded-full uppercase tracking-wider">Metode Pembayaran QRIS</span>
-            <p class="text-xs text-slate-600">Scan QRIS ini menggunakan GoPay / OVO / Dana / LinkAja / Mobile Banking Anda:</p>
+        <div x-data="{ copiedText: '' }" class="bg-indigo-50 border border-indigo-200 rounded-3xl p-5 text-center space-y-3">
+            <span class="px-3 py-1 bg-indigo-600 text-white text-[10px] font-black rounded-full uppercase tracking-wider">Metode Pembayaran QRIS & Transfer</span>
+            <p class="text-xs text-slate-600">Scan QRIS ini menggunakan GoPay / OVO / Dana / Mobile Banking Anda:</p>
             
             <div class="p-4 bg-white rounded-2xl inline-block shadow-md">
                 <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data={{ urlencode($transaction->tenant?->effective_qris_info ?? $transaction->invoice_number) }}" 
@@ -87,19 +88,64 @@
                 <p class="font-mono text-[10px] text-slate-500 font-bold mt-2">NMID / ID: {{ $transaction->tenant?->effective_qris_info ?? 'ID10293847561' }}</p>
             </div>
 
-            @if($transaction->tenant?->effective_bank_info || $transaction->tenant?->effective_ewallet_info)
-                <div class="pt-3 border-t border-indigo-100 text-left text-xs space-y-1 bg-white/70 p-3 rounded-2xl">
-                    <p class="font-extrabold text-slate-800 text-[11px] mb-1">Opsi Transfer Alternatif Toko:</p>
+            @if($transaction->tenant?->effective_bank_info || $transaction->tenant?->effective_ewallet_info || $transaction->tenant?->effective_qris_info)
+                <div class="pt-3 border-t border-indigo-100 text-left text-xs space-y-2 bg-white/80 p-3.5 rounded-2xl shadow-sm">
+                    <div class="flex items-center justify-between">
+                        <p class="font-extrabold text-slate-800 text-[11px]">Opsi Transfer & Copy Detail:</p>
+                        <span x-show="copiedText" x-transition class="text-[10px] font-extrabold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200" style="display:none;" x-text="copiedText + ' Tersalin!'"></span>
+                    </div>
+
                     @if($transaction->tenant?->effective_bank_info)
-                        <div class="flex justify-between text-slate-700">
-                            <span>Rekening Bank:</span>
-                            <span class="font-bold text-indigo-700">{{ $transaction->tenant->effective_bank_info }}</span>
+                        @php
+                            $bankNum = $transaction->tenant->effective_bank_account_number ?: preg_replace('/[^0-9]/', '', $transaction->tenant->effective_bank_info);
+                        @endphp
+                        <div class="flex items-center justify-between text-slate-700 bg-slate-50 p-2.5 rounded-xl border border-slate-200/70">
+                            <div>
+                                <span class="block text-[9px] text-slate-400 font-bold uppercase tracking-wider">Rekening Bank</span>
+                                <span class="font-extrabold text-indigo-700 text-xs">{{ $transaction->tenant->effective_bank_info }}</span>
+                            </div>
+                            <button @click="copyTextToClipboard('{{ e($bankNum) }}'); copiedText = 'No. Rekening {{ e($bankNum) }}'; setTimeout(() => copiedText = '', 2500)" 
+                                    class="px-2.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-bold rounded-xl text-[11px] flex items-center space-x-1 transition shadow-sm shrink-0">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                                </svg>
+                                <span>Salin No.</span>
+                            </button>
                         </div>
                     @endif
+
                     @if($transaction->tenant?->effective_ewallet_info)
-                        <div class="flex justify-between text-slate-700">
-                            <span>E-Wallet:</span>
-                            <span class="font-bold text-teal-700">{{ $transaction->tenant->effective_ewallet_info }}</span>
+                        @php
+                            $ewalletNum = $transaction->tenant->effective_ewallet_account_number ?: preg_replace('/[^0-9]/', '', $transaction->tenant->effective_ewallet_info);
+                        @endphp
+                        <div class="flex items-center justify-between text-slate-700 bg-slate-50 p-2.5 rounded-xl border border-slate-200/70">
+                            <div>
+                                <span class="block text-[9px] text-slate-400 font-bold uppercase tracking-wider">E-Wallet</span>
+                                <span class="font-extrabold text-teal-700 text-xs">{{ $transaction->tenant->effective_ewallet_info }}</span>
+                            </div>
+                            <button @click="copyTextToClipboard('{{ e($ewalletNum) }}'); copiedText = 'No. E-Wallet {{ e($ewalletNum) }}'; setTimeout(() => copiedText = '', 2500)" 
+                                    class="px-2.5 py-1.5 bg-teal-600 hover:bg-teal-700 active:scale-95 text-white font-bold rounded-xl text-[11px] flex items-center space-x-1 transition shadow-sm shrink-0">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                                </svg>
+                                <span>Salin No.</span>
+                            </button>
+                        </div>
+                    @endif
+
+                    @if($transaction->tenant?->effective_qris_info)
+                        <div class="flex items-center justify-between text-slate-700 bg-slate-50 p-2.5 rounded-xl border border-slate-200/70">
+                            <div class="overflow-hidden pr-2">
+                                <span class="block text-[9px] text-slate-400 font-bold uppercase tracking-wider">Payload / NMID QRIS</span>
+                                <span class="font-extrabold text-emerald-700 text-xs truncate block">{{ $transaction->tenant->effective_qris_info }}</span>
+                            </div>
+                            <button @click="copyTextToClipboard('{{ e($transaction->tenant->effective_qris_info) }}'); copiedText = 'Kode QRIS'; setTimeout(() => copiedText = '', 2500)" 
+                                    class="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold rounded-xl text-[11px] flex items-center space-x-1 transition shadow-sm shrink-0">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                                </svg>
+                                <span>Salin Code</span>
+                            </button>
                         </div>
                     @endif
                 </div>
@@ -152,5 +198,26 @@
         </a>
     </div>
 </div>
+
+<script>
+function copyTextToClipboard(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+        return navigator.clipboard.writeText(text);
+    } else {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-999999px";
+        textArea.style.top = "-999999px";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        return new Promise((resolve, reject) => {
+            document.execCommand('copy') ? resolve() : reject();
+            textArea.remove();
+        });
+    }
+}
+</script>
 </body>
 </html>
