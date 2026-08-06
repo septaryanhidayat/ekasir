@@ -16,6 +16,7 @@ class Product extends Model
 
     protected $fillable = [
         'tenant_id',
+        'supplier_id',
         'name',
         'barcode',
         'image',
@@ -41,6 +42,11 @@ class Product extends Model
     public function tenant(): BelongsTo
     {
         return $this->belongsTo(Tenant::class);
+    }
+
+    public function supplier(): BelongsTo
+    {
+        return $this->belongsTo(Supplier::class);
     }
 
     public function transactionDetails(): HasMany

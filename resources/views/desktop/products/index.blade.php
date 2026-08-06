@@ -247,7 +247,12 @@
                                     <img src="{{ $p->image_url }}" alt="{{ $p->name }}" class="w-10 h-10 rounded-xl object-cover border border-slate-100">
                                     <div>
                                         <p class="font-bold text-slate-900">{{ $p->name }}</p>
-                                        <p class="text-[10px] text-slate-400">ID: #{{ $p->id }}</p>
+                                        <p class="text-[10px] text-slate-400">
+                                            ID: #{{ $p->id }}
+                                            @if($p->supplier)
+                                                <span class="ml-1 text-emerald-600 font-bold">• {{ $p->supplier->name }}</span>
+                                            @endif
+                                        </p>
                                     </div>
                                 </div>
                             </td>
@@ -340,6 +345,16 @@
                 </div>
 
                 <div>
+                    <label class="block font-bold text-slate-700 mb-1">Suplier / Distributor (Opsional)</label>
+                    <select name="supplier_id" class="w-full px-3 py-2 bg-slate-100 rounded-xl border border-slate-200 font-semibold">
+                        <option value="">-- Tanpa Suplier --</option>
+                        @foreach($suppliers as $s)
+                            <option value="{{ $s->id }}">{{ $s->name }} ({{ $s->code }})</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div>
                     <label class="block font-bold text-slate-700 mb-1">Kode Barcode (Opsional)</label>
                     <div class="flex space-x-2">
                         <input type="text" name="barcode" x-model="selectedProduct.barcode" placeholder="Scan atau biarkan kosong (auto-generate)..." class="w-full px-3 py-2 bg-slate-100 rounded-xl border border-slate-200 font-mono">
@@ -401,6 +416,16 @@
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">Nama Produk</label>
                     <input type="text" name="name" x-model="selectedProduct.name" required class="w-full px-3 py-2 bg-slate-100 rounded-xl border border-slate-200">
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Suplier / Distributor (Opsional)</label>
+                    <select name="supplier_id" x-model="selectedProduct.supplier_id" class="w-full px-3 py-2 bg-slate-100 rounded-xl border border-slate-200 font-semibold">
+                        <option value="">-- Tanpa Suplier --</option>
+                        @foreach($suppliers as $s)
+                            <option value="{{ $s->id }}">{{ $s->name }} ({{ $s->code }})</option>
+                        @endforeach
+                    </select>
                 </div>
 
                 <div>

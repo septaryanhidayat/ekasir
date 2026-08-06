@@ -73,6 +73,14 @@
                 <span>Produk & Stok</span>
             </a>
 
+            <a href="{{ route('desktop.suppliers.index') }}" 
+               class="flex items-center px-4 py-3 rounded-xl text-sm font-semibold transition {{ request()->routeIs('desktop.suppliers.*') ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30' : 'hover:bg-slate-800 text-slate-400 hover:text-white' }}">
+                <svg class="w-5 h-5 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m0 0h4m-4 0V11m0 0h4m-4 0H9m4 0V7m0 0h4m-4 0H9"></path>
+                </svg>
+                <span>Suplier & Distributor</span>
+            </a>
+
             <a href="{{ route('desktop.expenses.index') }}" 
                class="flex items-center px-4 py-3 rounded-xl text-sm font-semibold transition {{ request()->routeIs('desktop.expenses.*') ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30' : 'hover:bg-slate-800 text-slate-400 hover:text-white' }}">
                 <svg class="w-5 h-5 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">

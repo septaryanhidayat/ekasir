@@ -9,6 +9,7 @@ use App\Http\Controllers\PosController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SmartInputController;
+use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\TenantController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -58,6 +59,12 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/cash-register/open', [CashRegisterController::class, 'openRegister'])->name('cash-register.open');
         Route::post('/cash-register/cash-flow', [CashRegisterController::class, 'addCashFlow'])->name('cash-register.cash-flow');
         Route::post('/cash-register/close', [CashRegisterController::class, 'closeRegister'])->name('cash-register.close');
+
+        // Supplier / Distributor Management (Mobile View)
+        Route::get('/suppliers', [SupplierController::class, 'mobileIndex'])->name('suppliers');
+        Route::post('/suppliers', [SupplierController::class, 'store'])->name('suppliers.store');
+        Route::put('/suppliers/{supplier}', [SupplierController::class, 'update'])->name('suppliers.update');
+        Route::delete('/suppliers/{supplier}', [SupplierController::class, 'destroy'])->name('suppliers.destroy');
     });
 
     // Desktop Management Dashboard Routes
@@ -69,6 +76,12 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/products', [ProductController::class, 'store'])->name('products.store');
         Route::put('/products/{product}', [ProductController::class, 'update'])->name('products.update');
         Route::delete('/products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
+
+        // Suppliers & Distributors Management
+        Route::get('/suppliers', [SupplierController::class, 'index'])->name('suppliers.index');
+        Route::post('/suppliers', [SupplierController::class, 'store'])->name('suppliers.store');
+        Route::put('/suppliers/{supplier}', [SupplierController::class, 'update'])->name('suppliers.update');
+        Route::delete('/suppliers/{supplier}', [SupplierController::class, 'destroy'])->name('suppliers.destroy');
 
         // Outlets / Tenants (Superadmin)
         Route::get('/tenants', [TenantController::class, 'index'])->name('tenants.index');

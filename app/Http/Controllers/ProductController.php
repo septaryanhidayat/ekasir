@@ -10,7 +10,7 @@ class ProductController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Product::query();
+        $query = Product::with('supplier');
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -21,14 +21,16 @@ class ProductController extends Controller
         }
 
         $products = $query->orderBy('name')->paginate(15);
+        $suppliers = \App\Models\Supplier::where('is_active', true)->orderBy('name')->get();
 
-        return view('desktop.products.index', compact('products'));
+        return view('desktop.products.index', compact('products', 'suppliers'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
             'name' => 'required|string|max:255',
+            'supplier_id' => 'nullable|exists:suppliers,id',
             'barcode' => 'nullable|string|max:100',
             'hpp' => 'required|numeric|min:0',
             'harga_jual' => 'required|numeric|min:0',
@@ -58,6 +60,7 @@ class ProductController extends Controller
 
         $productData = [
             'tenant_id' => $tenantId,
+            'supplier_id' => $request->supplier_id,
             'name' => $request->name,
             'barcode' => $barcode,
             'image' => $imagePath,
@@ -84,6 +87,7 @@ class ProductController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
+            'supplier_id' => 'nullable|exists:suppliers,id',
             'barcode' => 'nullable|string|max:100',
             'hpp' => 'required|numeric|min:0',
             'harga_jual' => 'required|numeric|min:0',
@@ -97,6 +101,7 @@ class ProductController extends Controller
 
         $data = [
             'name' => $request->name,
+            'supplier_id' => $request->supplier_id,
             'barcode' => $barcode,
             'hpp' => $request->hpp,
             'harga_jual' => $request->harga_jual,

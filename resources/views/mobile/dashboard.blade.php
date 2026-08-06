@@ -160,6 +160,21 @@
             <p class="text-[11px] text-slate-500 mt-0.5">{{ $todayTransactionsCount }} Transaksi Hari Ini</p>
         </a>
 
+        <!-- Menu Suplier / Distributor -->
+        <a href="{{ route('mobile.suppliers') }}" class="group glass-card p-5 rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 relative overflow-hidden flex flex-col items-center text-center col-span-2 border border-emerald-200/80 bg-emerald-50/30">
+            <div class="flex items-center space-x-3 text-left w-full">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-700 text-white flex items-center justify-center shadow-lg shadow-emerald-500/30 shrink-0 group-hover:scale-110 transition-transform">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m0 0h4m-4 0V11m0 0h4m-4 0H9m4 0V7m0 0h4m-4 0H9"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h4 class="font-extrabold text-slate-800 text-sm">Suplier & Distributor</h4>
+                    <p class="text-[11px] text-slate-500">Kelola kontak suplier & hubungi via WhatsApp</p>
+                </div>
+            </div>
+        </a>
+
         @if(auth()->check() && (auth()->user()->role === 'superadmin' || auth()->user()->role === 'manager'))
             <!-- Menu 5: Manajemen Produk & Stok (Khusus Admin/Manajer) -->
             <a href="{{ route('desktop.products.index') }}" class="group glass-card p-5 rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 relative overflow-hidden flex flex-col items-center text-center col-span-2 border border-indigo-200/80 bg-indigo-50/40">
