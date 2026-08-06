@@ -101,7 +101,7 @@
                         </td>
                         <td class="py-3 px-4 font-bold text-rose-600">Rp {{ number_format($exp->amount, 0, ',', '.') }}</td>
                         <td class="py-3 px-4 text-slate-600">{{ $exp->notes ?? '-' }}</td>
-                        <td class="py-3 px-4 text-slate-500">{{ $exp->user->name ?? '-' }}</td>
+                        <td class="py-3 px-4 text-slate-500">{{ $exp->user?->name ?? '-' }}</td>
                         @if(auth()->user()->role === 'superadmin')
                             <td class="py-3 px-4"><span class="px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded font-bold text-[10px]">{{ $exp->tenant->name ?? '-' }}</span></td>
                         @endif
@@ -142,7 +142,7 @@
                     <tr class="hover:bg-slate-50/80 transition">
                         <td class="py-3 px-4 font-bold text-indigo-600">{{ $t->invoice_number }}</td>
                         <td class="py-3 px-4 text-slate-500">{{ $t->created_at->format('d/m/Y H:i') }}</td>
-                        <td class="py-3 px-4">{{ $t->user->name ?? '-' }}</td>
+                        <td class="py-3 px-4">{{ $t->user?->name ?? ($t->customer_name ? $t->customer_name . ' (Online)' : 'Customer / Online') }}</td>
                         <td class="py-3 px-4">{{ $t->details->sum('qty') }} barang</td>
                         <td class="py-3 px-4 font-bold text-slate-900">Rp {{ number_format($t->total_amount, 0, ',', '.') }}</td>
                         <td class="py-3 px-4 font-bold text-emerald-600">Rp {{ number_format($t->total_amount - $t->total_hpp, 0, ',', '.') }}</td>
@@ -183,7 +183,7 @@
             <tbody class="divide-y divide-slate-100 font-semibold text-slate-700">
                 @forelse($cashRegisters as $cr)
                     <tr class="hover:bg-slate-50/80 transition">
-                        <td class="py-3 px-4 font-bold text-slate-900">{{ $cr->user->name ?? '-' }}</td>
+                        <td class="py-3 px-4 font-bold text-slate-900">{{ $cr->user?->name ?? '-' }}</td>
                         <td class="py-3 px-4 text-slate-500">{{ $cr->opened_at->format('d/m H:i') }}</td>
                         <td class="py-3 px-4 text-slate-500">{{ $cr->closed_at ? $cr->closed_at->format('d/m H:i') : '-' }}</td>
                         <td class="py-3 px-4">Rp {{ number_format($cr->opening_amount, 0, ',', '.') }}</td>

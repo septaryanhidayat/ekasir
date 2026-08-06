@@ -101,12 +101,12 @@
                                 {{ $item->notes ?? '-' }}
                             </td>
                             <td class="py-3.5 px-4 text-slate-500">
-                                {{ $item->user->name ?? '-' }}
+                                {{ $item->user?->name ?? '-' }}
                             </td>
                             @if(auth()->user()->role === 'superadmin')
                                 <td class="py-3.5 px-4">
                                     <span class="px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg text-[10px] font-bold">
-                                        {{ $item->tenant->name ?? 'Outlet' }}
+                                        {{ $item->tenant?->name ?? 'Outlet' }}
                                     </span>
                                 </td>
                             @endif

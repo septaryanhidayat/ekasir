@@ -9,9 +9,11 @@
     <div class="bg-white p-6 rounded-2xl border border-dashed border-slate-300 font-mono text-slate-800 text-xs shadow-inner">
         <!-- Receipt Header -->
         <div class="text-center pb-4 border-b border-dashed border-slate-300">
-            <h2 class="font-bold text-base text-slate-900 uppercase">{{ $transaction->tenant->name }}</h2>
-            <p class="text-[10px] text-slate-500">{{ $transaction->tenant->address }}</p>
-            <p class="text-[10px] text-slate-500">Telp: {{ $transaction->tenant->phone }}</p>
+            <h2 class="font-bold text-base text-slate-900 uppercase">{{ $transaction->tenant?->name ?? 'E-KASIR' }}</h2>
+            <p class="text-[10px] text-slate-500">{{ $transaction->tenant?->address ?? '' }}</p>
+            @if($transaction->tenant?->phone)
+                <p class="text-[10px] text-slate-500">Telp: {{ $transaction->tenant->phone }}</p>
+            @endif
         </div>
 
         <!-- Receipt Meta -->
@@ -25,9 +27,27 @@
                 <span>{{ $transaction->created_at->format('d/m/Y H:i') }}</span>
             </div>
             <div class="flex justify-between">
-                <span>Kasir:</span>
-                <span>{{ $transaction->user->name }}</span>
+                <span>Kasir / Operator:</span>
+                <span>{{ $transaction->user?->name ?? ($transaction->customer_name ? $transaction->customer_name . ' (Online)' : 'Customer App / Online') }}</span>
             </div>
+            @if($transaction->customer_name && $transaction->user)
+            <div class="flex justify-between">
+                <span>Pelanggan:</span>
+                <span>{{ $transaction->customer_name }}</span>
+            </div>
+            @endif
+            @if($transaction->order_type)
+            <div class="flex justify-between">
+                <span>Tipe Pesanan:</span>
+                <span class="uppercase font-bold text-indigo-600">{{ str_replace('_', ' ', $transaction->order_type) }}</span>
+            </div>
+            @endif
+            @if($transaction->table_number)
+            <div class="flex justify-between">
+                <span>No. Meja:</span>
+                <span class="font-bold">{{ $transaction->table_number }}</span>
+            </div>
+            @endif
         </div>
 
         <!-- Items Table -->
@@ -50,6 +70,11 @@
                 <span>Rp {{ number_format($transaction->total_amount, 0, ',', '.') }}</span>
             </div>
             <div class="flex justify-between text-slate-600">
+                <span>Metode Bayar:</span>
+                <span class="uppercase font-bold">{{ $transaction->payment_method }}</span>
+            </div>
+            @if($transaction->payment_method === 'cash')
+            <div class="flex justify-between text-slate-600">
                 <span>Tunai (Paid):</span>
                 <span>Rp {{ number_format($transaction->cash_paid, 0, ',', '.') }}</span>
             </div>
@@ -57,6 +82,12 @@
                 <span>Kembalian:</span>
                 <span>Rp {{ number_format($transaction->change_amount, 0, ',', '.') }}</span>
             </div>
+            @else
+            <div class="flex justify-between font-bold text-emerald-600">
+                <span>Status Bayar:</span>
+                <span class="uppercase">{{ $transaction->order_status ?? 'PAID' }}</span>
+            </div>
+            @endif
         </div>
 
         <!-- Footer Greeting -->
@@ -75,8 +106,8 @@
             <span>Cetak Struk Thermal</span>
         </button>
 
-        <a href="{{ route('mobile.pos') }}" class="block text-center w-full py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-2xl transition">
-            &larr; Transaksi Baru
+        <a href="{{ route('mobile.transactions') }}" class="block text-center w-full py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-2xl transition">
+            &larr; Kembali ke Riwayat Transaksi
         </a>
     </div>
 </div>

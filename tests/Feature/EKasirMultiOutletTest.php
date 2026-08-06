@@ -144,4 +144,43 @@ class EKasirMultiOutletTest extends TestCase
             'total_amount' => 15000,
         ]);
     }
+
+    public function test_mobile_receipt_handles_null_user_for_qris_customer_order(): void
+    {
+        $tenant = Tenant::create([
+            'name' => 'Kantin Sekolah BSD',
+            'code' => 'OUT-BSD',
+        ]);
+
+        $cashier = User::create([
+            'tenant_id' => $tenant->id,
+            'name' => 'Kasir 1',
+            'email' => 'kasir1@test.com',
+            'password' => bcrypt('password'),
+            'role' => 'cashier',
+        ]);
+
+        $transaction = Transaction::create([
+            'invoice_number' => 'INV/20260805/0001',
+            'tenant_id' => $tenant->id,
+            'user_id' => null,
+            'customer_name' => 'Ahmad',
+            'customer_phone' => '0812345678',
+            'order_type' => 'dine_in',
+            'order_source' => 'customer_app',
+            'order_status' => 'paid',
+            'total_hpp' => 8000,
+            'total_amount' => 11500,
+            'cash_paid' => 11500,
+            'change_amount' => 0,
+            'payment_method' => 'qris',
+            'status' => 'completed',
+        ]);
+
+        $response = $this->actingAs($cashier)->get(route('mobile.receipt', $transaction->id));
+
+        $response->assertStatus(200);
+        $response->assertSee('INV/20260805/0001');
+        $response->assertSee('Ahmad (Online)');
+    }
 }
