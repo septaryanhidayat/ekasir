@@ -29,7 +29,7 @@ class SmartInputController extends Controller
             'hpp' => 'nullable|numeric|min:0',
             'harga_jual' => 'nullable|numeric|min:0',
             'stock' => 'required|integer|min:0',
-            'image' => 'nullable|image|max:4096',
+            'image' => 'nullable|file|mimes:jpg,jpeg,png,webp,gif,bmp,heic|max:20480',
             'image_camera_base64' => 'nullable|string',
             'tenant_id' => 'nullable|exists:tenants,id',
             'created_at' => 'nullable|string',
@@ -63,7 +63,7 @@ class SmartInputController extends Controller
             if ($request->filled('name')) $product->name = $request->name;
 
             if ($request->hasFile('image')) {
-                $product->image = $request->file('image')->store('products', 'public');
+                $product->image = \App\Services\ImageOptimizer::compressAndStore($request->file('image'));
             }
 
             if ($request->filled('created_at')) {
@@ -85,17 +85,9 @@ class SmartInputController extends Controller
         $imagePath = null;
 
         if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('products', 'public');
+            $imagePath = \App\Services\ImageOptimizer::compressAndStore($request->file('image'));
         } elseif ($request->filled('image_camera_base64')) {
-            $base64Image = $request->image_camera_base64;
-            if (preg_match('/^data:image\/(\w+);base64,/', $base64Image, $type)) {
-                $base64Image = substr($base64Image, strpos($base64Image, ',') + 1);
-                $type = strtolower($type[1]);
-                $image = base64_decode($base64Image);
-                $filename = 'products/' . Str::random(20) . '.' . $type;
-                Storage::disk('public')->put($filename, $image);
-                $imagePath = $filename;
-            }
+            $imagePath = \App\Services\ImageOptimizer::compressAndStore($request->image_camera_base64);
         }
 
         $barcode = $request->barcode ?: 'BRD' . date('Ymd') . rand(1000, 9999);

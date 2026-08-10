@@ -382,6 +382,65 @@ class EKasirMultiOutletTest extends TestCase
             'code' => 'OUT-RESTORED',
         ]);
     }
+
+    public function test_image_optimizer_compresses_uploaded_file_under_50kb(): void
+    {
+        \Illuminate\Support\Facades\Storage::fake('public');
+
+        $file = \Illuminate\Http\UploadedFile::fake()->image('large_product.jpg', 1500, 1500);
+        $path = \App\Services\ImageOptimizer::compressAndStore($file);
+
+        $this->assertNotNull($path);
+        \Illuminate\Support\Facades\Storage::disk('public')->assertExists($path);
+
+        $sizeInBytes = strlen(\Illuminate\Support\Facades\Storage::disk('public')->get($path));
+        $this->assertLessThan(50 * 1024, $sizeInBytes, "Compressed image size should be less than 50KB");
+    }
+
+    public function test_updating_product_image_compresses_and_stores_file(): void
+    {
+        $tenant = Tenant::create([
+            'name' => 'Outlet Image Test',
+            'code' => 'OUT-IMG',
+        ]);
+
+        $user = User::create([
+            'tenant_id' => $tenant->id,
+            'name' => 'Admin Image',
+            'email' => 'admin_image@test.com',
+            'password' => bcrypt('password'),
+            'role' => 'admin',
+        ]);
+
+        $product = Product::create([
+            'tenant_id' => $tenant->id,
+            'name' => 'Test Product Image',
+            'barcode' => 'BRD-TEST-IMG',
+            'hpp' => 1000,
+            'harga_jual' => 2000,
+            'stock' => 10,
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($user);
+
+        $file = \Illuminate\Http\UploadedFile::fake()->image('new_product.jpg', 800, 800);
+
+        $response = $this->put(route('desktop.products.update', $product->id), [
+            'name' => 'Test Product Image Updated',
+            'hpp' => 1000,
+            'harga_jual' => 2000,
+            'stock' => 10,
+            'image' => $file,
+        ]);
+
+        $response->assertSessionHasNoErrors();
+        $response->assertSessionHas('success');
+
+        $updatedProduct = $product->fresh();
+        $this->assertNotNull($updatedProduct->image);
+        $this->assertStringContainsString('products/', $updatedProduct->image);
+    }
 }
 
 

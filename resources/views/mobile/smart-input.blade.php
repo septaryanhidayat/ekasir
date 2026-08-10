@@ -157,7 +157,7 @@
 
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">Foto Fisik Produk (Opsional)</label>
-                    <input type="file" name="image" accept="image/*" capture="environment" 
+                    <input type="file" name="image" accept="image/*" capture="environment" @change="compressClientImage($event)"
                            class="w-full text-[11px] text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-[11px] file:font-bold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
                 </div>
 
@@ -258,6 +258,54 @@ function smartInputApp(allProducts) {
         scanning: false,
         scannerObj: null,
         matchedProduct: null,
+
+        compressClientImage(event) {
+            const fileInput = event.target;
+            const file = fileInput.files[0];
+            if (!file || !file.type.startsWith('image/')) return;
+            
+            if (file.size < 100 * 1024) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+                    const maxDim = 600;
+
+                    if (width > maxDim || height > maxDim) {
+                        if (width >= height) {
+                            height = Math.round((height / width) * maxDim);
+                            width = maxDim;
+                        } else {
+                            width = Math.round((width / height) * maxDim);
+                            height = maxDim;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    canvas.toBlob((blob) => {
+                        if (blob) {
+                            const newFile = new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".jpg", {
+                                type: 'image/jpeg',
+                                lastModified: Date.now()
+                            });
+                            const container = new DataTransfer();
+                            container.items.add(newFile);
+                            fileInput.files = container.files;
+                        }
+                    }, 'image/jpeg', 0.75);
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        },
 
         generateAutoBarcode() {
             const todayStr = new Date().toISOString().slice(0,10).replace(/-/g,'');

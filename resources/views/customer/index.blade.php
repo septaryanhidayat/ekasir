@@ -96,7 +96,7 @@
                 <div class="bg-white rounded-3xl p-3 border border-slate-100 shadow-sm flex flex-col justify-between hover:shadow-md transition">
                     <div>
                         <div class="w-full h-32 bg-slate-100 rounded-2xl overflow-hidden mb-2 relative">
-                            <img :src="product.image_url" :alt="product.name" class="w-full h-full object-cover">
+                            <img :src="product.image_url" :alt="product.name" :onerror="'this.onerror=null; this.src=\'' + {{ json_encode(\App\Models\Product::getPlaceholderUrl()) }} + '\';'" class="w-full h-full object-cover">
                             <span class="absolute top-2 right-2 bg-slate-900/80 backdrop-blur-md text-white text-[9px] px-2 py-0.5 rounded-full font-bold" 
                                   x-text="'Stok: ' + product.stock"></span>
                         </div>

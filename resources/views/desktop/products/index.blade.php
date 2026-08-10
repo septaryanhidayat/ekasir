@@ -29,118 +29,30 @@
 @endpush
 
 @section('content')
-<div x-data="{ 
-    showAddModal: false, 
-    editModal: false, 
-    barcodeModal: false, 
-    bulkBarcodeModal: false,
-    selectedProduct: {}, 
-    customPrintPrice: 0, 
-    printQty: 12,
-    showTenant: true,
-    showProductName: true,
-    showBarcodeImg: true,
-    showBarcodeCode: true,
-    showPrice: true,
+<div x-data="productApp(@js($products->items()))">
+    @if(session('success'))
+        <div class="mb-4 p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-xs font-bold text-emerald-800 flex items-center justify-between">
+            <span>{{ session('success') }}</span>
+        </div>
+    @endif
 
-    inputMode: 'new',
-    selectedRestockProductId: '',
-    restockStockAction: 'add',
-    restockStock: 0,
-    restockHpp: '',
-    restockHargaJual: '',
-    restockSupplierId: '',
-    restockBarcode: '',
-    allProductsList: {{ json_encode($products->items()) }},
+    @if(session('error'))
+        <div class="mb-4 p-4 bg-rose-50 border border-rose-200 rounded-2xl text-xs font-bold text-rose-800 flex items-center justify-between">
+            <span>{{ session('error') }}</span>
+        </div>
+    @endif
 
-    onSelectRestockProductChange() {
-        const prod = this.allProductsList.find(p => p.id == this.selectedRestockProductId);
-        if (prod) {
-            this.restockHpp = prod.hpp;
-            this.restockHargaJual = prod.harga_jual;
-            this.restockSupplierId = prod.supplier_id || '';
-            this.restockBarcode = prod.barcode || '';
-        } else {
-            this.restockHpp = '';
-            this.restockHargaJual = '';
-            this.restockSupplierId = '';
-            this.restockBarcode = '';
-        }
-    },
+    @if($errors->any())
+        <div class="mb-4 p-4 bg-rose-50 border border-rose-200 rounded-2xl text-xs font-bold text-rose-800 space-y-1">
+            <p class="font-extrabold text-sm mb-1">Gagal Menyimpan / Memperbarui Produk:</p>
+            <ul class="list-disc list-inside">
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
 
-    selectedProductIds: [],
-    selectAll: false,
-    bulkProducts: [],
-    bulkDefaultQty: 6,
-
-    toggleSelectAll(productsList) {
-        if (this.selectAll) {
-            this.selectedProductIds = productsList.map(p => p.id);
-        } else {
-            this.selectedProductIds = [];
-        }
-    },
-
-    openBulkPrint(allProductsList) {
-        let listToPrint = [];
-        if (this.selectedProductIds.length > 0) {
-            listToPrint = allProductsList.filter(p => this.selectedProductIds.includes(p.id));
-        } else {
-            listToPrint = allProductsList;
-        }
-
-        this.bulkProducts = listToPrint.map(p => ({
-            id: p.id,
-            name: p.name,
-            barcode: p.barcode,
-            harga_jual: p.harga_jual,
-            print_price: p.harga_jual,
-            print_qty: this.bulkDefaultQty || 6
-        }));
-
-        this.bulkBarcodeModal = true;
-    },
-
-    setAllBulkQty(qty) {
-        this.bulkDefaultQty = qty;
-        this.bulkProducts.forEach(p => p.print_qty = qty);
-    },
-
-    removeBulkItem(index) {
-        this.bulkProducts.splice(index, 1);
-    },
-
-    get totalBulkStickers() {
-        return this.bulkProducts.reduce((sum, p) => sum + parseInt(p.print_qty || 0), 0);
-    },
-
-    get flattenedBulkItems() {
-        let result = [];
-        if (!this.bulkProducts || !Array.isArray(this.bulkProducts)) return result;
-        this.bulkProducts.forEach((item, prodIdx) => {
-            const qty = Math.max(1, parseInt(item.print_qty || 1));
-            for (let i = 0; i < qty; i++) {
-                result.push({
-                    ...item,
-                    unique_key: 'prod-' + (item.id || prodIdx) + '-sticker-' + i
-                });
-            }
-        });
-        return result;
-    },
-
-    formatDateTimeLocal(dateStr) {
-        if (!dateStr) return '';
-        const d = new Date(dateStr);
-        if (isNaN(d.getTime())) return '';
-        const year = d.getFullYear();
-        const month = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        const hours = String(d.getHours()).padStart(2, '0');
-        const minutes = String(d.getMinutes()).padStart(2, '0');
-        return `${year}-${month}-${day}T${hours}:${minutes}`;
-    }
-}">
     <!-- Action Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <form method="GET" action="{{ route('desktop.products.index') }}" class="flex items-center space-x-2 w-full sm:w-auto">
@@ -151,7 +63,7 @@
 
         <div class="flex items-center space-x-2 w-full sm:w-auto">
             <!-- Bulk Print Button -->
-            <button @click="openBulkPrint({{ json_encode($products->items()) }})" class="flex-1 sm:flex-none px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-emerald-500/20 flex items-center justify-center space-x-1.5 transition">
+            <button @click="openBulkPrint(@js($products->items()))" class="flex-1 sm:flex-none px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-emerald-500/20 flex items-center justify-center space-x-1.5 transition">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
                 </svg>
@@ -170,7 +82,7 @@
     <!-- Mobile Select All Bar (Visible only on Mobile) -->
     <div class="flex md:hidden items-center justify-between bg-white p-3 rounded-2xl border border-slate-100 mb-3 shadow-sm">
         <label class="flex items-center space-x-2 text-xs font-bold text-slate-700 cursor-pointer">
-            <input type="checkbox" @change="toggleSelectAll({{ json_encode($products->items()) }})" x-model="selectAll" class="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4">
+            <input type="checkbox" @change="toggleSelectAll(@js($products->items()))" x-model="selectAll" class="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4">
             <span>Pilih Semua Barang (Halaman Ini)</span>
         </label>
         <span class="text-[10px] text-indigo-600 font-extrabold" x-text="selectedProductIds.length + ' Terpilih'"></span>
@@ -183,7 +95,7 @@
                 <div class="flex items-start justify-between gap-2">
                     <div class="flex items-center space-x-3 min-w-0">
                         <input type="checkbox" value="{{ $p->id }}" x-model="selectedProductIds" class="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4 cursor-pointer shrink-0">
-                        <img src="{{ $p->image_url }}" alt="{{ $p->name }}" class="w-11 h-11 rounded-xl object-cover border border-slate-100 shrink-0">
+                        <img src="{{ $p->image_url }}" alt="{{ $p->name }}" onerror="this.onerror=null; this.src='{{ \App\Models\Product::getPlaceholderUrl() }}';" class="w-11 h-11 rounded-xl object-cover border border-slate-100 shrink-0">
                         <div class="min-w-0">
                             <h4 class="font-extrabold text-slate-900 text-xs truncate leading-tight">{{ $p->name }}</h4>
                             <span class="px-2 py-0.5 bg-slate-100 text-slate-600 rounded font-mono font-bold text-[10px] inline-block mt-0.5">{{ $p->barcode ?? 'BRD-AUTO' }}</span>
@@ -220,10 +132,10 @@
                         <span>Upd: {{ $p->updated_at ? $p->updated_at->format('d/m/Y H:i') : '-' }}</span>
                     </div>
                     <div class="flex items-center space-x-1.5">
-                        <button @click="selectedProduct = {{ json_encode($p) }}; customPrintPrice = {{ $p->harga_jual }}; barcodeModal = true" class="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 font-bold rounded-lg text-[10px] transition">
+                        <button @click="openBarcodeModal(@js($p))" class="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 font-bold rounded-lg text-[10px] transition">
                             Label
                         </button>
-                        <button @click="selectedProduct = {{ json_encode($p) }}; editModal = true" class="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 font-bold rounded-lg text-[10px] transition">
+                        <button @click="openEditModal(@js($p))" class="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 font-bold rounded-lg text-[10px] transition">
                             Edit
                         </button>
                         <form action="{{ route('desktop.products.destroy', $p->id) }}" method="POST" onsubmit="return confirm('Hapus produk ini?')" class="inline">
@@ -250,7 +162,7 @@
                 <thead>
                     <tr class="bg-slate-50 border-b border-slate-100 text-slate-400 font-bold uppercase tracking-wider">
                         <th class="py-4 px-4 w-10 text-center">
-                            <input type="checkbox" @change="toggleSelectAll({{ json_encode($products->items()) }})" x-model="selectAll" class="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4 cursor-pointer">
+                            <input type="checkbox" @change="toggleSelectAll(@js($products->items()))" x-model="selectAll" class="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4 cursor-pointer">
                         </th>
                         <th class="py-4 px-4">Produk</th>
                         <th class="py-4 px-4">Barcode</th>
@@ -269,7 +181,7 @@
                             </td>
                             <td class="py-3.5 px-4">
                                 <div class="flex items-center space-x-3">
-                                    <img src="{{ $p->image_url }}" alt="{{ $p->name }}" class="w-10 h-10 rounded-xl object-cover border border-slate-100">
+                                    <img src="{{ $p->image_url }}" alt="{{ $p->name }}" onerror="this.onerror=null; this.src='{{ \App\Models\Product::getPlaceholderUrl() }}';" class="w-10 h-10 rounded-xl object-cover border border-slate-100">
                                     <div>
                                         <p class="font-bold text-slate-900">{{ $p->name }}</p>
                                         <p class="text-[10px] text-slate-400">
@@ -307,14 +219,14 @@
                             <td class="py-3.5 px-4 text-right">
                                 <div class="flex items-center justify-end space-x-1.5">
                                     <!-- Print Barcode Button -->
-                                    <button @click="selectedProduct = {{ json_encode($p) }}; customPrintPrice = {{ $p->harga_jual }}; barcodeModal = true" title="Cetak Barcode & Label Harga Etalase" class="px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded-lg flex items-center space-x-1 font-bold text-[11px] transition">
+                                    <button @click="openBarcodeModal(@js($p))" title="Cetak Barcode & Label Harga Etalase" class="px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded-lg flex items-center space-x-1 font-bold text-[11px] transition">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2a1 1 0 001-1v-5a1 1 0 00-1-1H3a1 1 0 00-1 1v5a1 1 0 001 1h2m2 4h10a1 1 0 001-1v-5a1 1 0 00-1-1H7a1 1 0 00-1 1v5a1 1 0 001 1zm3-7h4"></path>
                                         </svg>
                                         <span class="hidden lg:inline">Cetak Label Barcode</span>
                                     </button>
 
-                                    <button @click="selectedProduct = {{ json_encode($p) }}; editModal = true" title="Edit Produk" class="p-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded-lg transition">
+                                    <button @click="openEditModal(@js($p))" title="Edit Produk" class="p-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded-lg transition">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                                         </svg>
@@ -454,7 +366,7 @@
 
                         <div>
                             <label class="block font-bold text-slate-700 mb-1">Foto Produk</label>
-                            <input type="file" name="image" class="w-full text-slate-500 text-xs">
+                            <input type="file" name="image" @change="compressClientImage($event)" class="w-full text-slate-500 text-xs">
                         </div>
 
                         <div class="flex justify-end space-x-2 pt-2">
@@ -601,7 +513,7 @@
 
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">Ubah Foto Produk (Opsional)</label>
-                    <input type="file" name="image" class="w-full text-slate-500">
+                    <input type="file" name="image" @change="compressClientImage($event)" class="w-full text-slate-500">
                 </div>
 
                 <div class="flex justify-end space-x-2 pt-2">
@@ -865,3 +777,183 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+function productApp(allProductsData) {
+    return {
+        showAddModal: false, 
+        editModal: false, 
+        barcodeModal: false, 
+        bulkBarcodeModal: false,
+        selectedProduct: {}, 
+        customPrintPrice: 0, 
+        printQty: 12,
+        showTenant: true,
+        showProductName: true,
+        showBarcodeImg: true,
+        showBarcodeCode: true,
+        showPrice: true,
+
+        inputMode: 'new',
+        selectedRestockProductId: '',
+        restockStockAction: 'add',
+        restockStock: 0,
+        restockHpp: '',
+        restockHargaJual: '',
+        restockSupplierId: '',
+        restockBarcode: '',
+        allProductsList: allProductsData || [],
+
+        openEditModal(productObj) {
+            this.selectedProduct = Object.assign({}, productObj);
+            this.editModal = true;
+        },
+
+        openBarcodeModal(productObj) {
+            this.selectedProduct = Object.assign({}, productObj);
+            this.customPrintPrice = productObj.harga_jual;
+            this.barcodeModal = true;
+        },
+
+        onSelectRestockProductChange() {
+            const prod = this.allProductsList.find(p => p.id == this.selectedRestockProductId);
+            if (prod) {
+                this.restockHpp = prod.hpp;
+                this.restockHargaJual = prod.harga_jual;
+                this.restockSupplierId = prod.supplier_id || '';
+                this.restockBarcode = prod.barcode || '';
+            } else {
+                this.restockHpp = '';
+                this.restockHargaJual = '';
+                this.restockSupplierId = '';
+                this.restockBarcode = '';
+            }
+        },
+
+        selectedProductIds: [],
+        selectAll: false,
+        bulkProducts: [],
+        bulkDefaultQty: 6,
+
+        toggleSelectAll(productsList) {
+            const list = productsList || this.allProductsList;
+            if (this.selectAll) {
+                this.selectedProductIds = list.map(p => p.id);
+            } else {
+                this.selectedProductIds = [];
+            }
+        },
+
+        openBulkPrint(allProductsList) {
+            const list = allProductsList || this.allProductsList;
+            let listToPrint = [];
+            if (this.selectedProductIds.length > 0) {
+                listToPrint = list.filter(p => this.selectedProductIds.includes(p.id));
+            } else {
+                listToPrint = list;
+            }
+
+            this.bulkProducts = listToPrint.map(p => ({
+                id: p.id,
+                name: p.name,
+                barcode: p.barcode,
+                harga_jual: p.harga_jual,
+                print_price: p.harga_jual,
+                print_qty: this.bulkDefaultQty || 6
+            }));
+
+            this.bulkBarcodeModal = true;
+        },
+
+        setAllBulkQty(qty) {
+            this.bulkDefaultQty = qty;
+            this.bulkProducts.forEach(p => p.print_qty = qty);
+        },
+
+        removeBulkItem(index) {
+            this.bulkProducts.splice(index, 1);
+        },
+
+        get totalBulkStickers() {
+            return this.bulkProducts.reduce((sum, p) => sum + parseInt(p.print_qty || 0), 0);
+        },
+
+        get flattenedBulkItems() {
+            let result = [];
+            if (!this.bulkProducts || !Array.isArray(this.bulkProducts)) return result;
+            this.bulkProducts.forEach((item, prodIdx) => {
+                const qty = Math.max(1, parseInt(item.print_qty || 1));
+                for (let i = 0; i < qty; i++) {
+                    result.push({
+                        ...item,
+                        unique_key: 'prod-' + (item.id || prodIdx) + '-sticker-' + i
+                    });
+                }
+            });
+            return result;
+        },
+
+        compressClientImage(event) {
+            const fileInput = event.target;
+            const file = fileInput.files[0];
+            if (!file || !file.type.startsWith('image/')) return;
+            
+            if (file.size < 100 * 1024) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+                    const maxDim = 600;
+
+                    if (width > maxDim || height > maxDim) {
+                        if (width >= height) {
+                            height = Math.round((height / width) * maxDim);
+                            width = maxDim;
+                        } else {
+                            width = Math.round((width / height) * maxDim);
+                            height = maxDim;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    canvas.toBlob((blob) => {
+                        if (blob) {
+                            const newFile = new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".jpg", {
+                                type: 'image/jpeg',
+                                lastModified: Date.now()
+                            });
+                            const container = new DataTransfer();
+                            container.items.add(newFile);
+                            fileInput.files = container.files;
+                        }
+                    }, 'image/jpeg', 0.75);
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        },
+
+        formatDateTimeLocal(dateStr) {
+            if (!dateStr) return '';
+            const d = new Date(dateStr);
+            if (isNaN(d.getTime())) return '';
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            const hours = String(d.getHours()).padStart(2, '0');
+            const minutes = String(d.getMinutes()).padStart(2, '0');
+            return `${year}-${month}-${day}T${hours}:${minutes}`;
+        }
+    };
+}
+</script>
+@endpush

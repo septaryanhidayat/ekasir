@@ -56,7 +56,7 @@
                  class="glass-card p-3 rounded-2xl shadow-sm hover:shadow-md transition cursor-pointer flex flex-col justify-between active:scale-95 transform border border-slate-200/60">
                 <div>
                     <div class="w-full h-24 bg-slate-100 rounded-xl mb-2 overflow-hidden relative">
-                        <img :src="product.image_url" :alt="product.name" class="w-full h-full object-cover">
+                        <img :src="product.image_url" :alt="product.name" :onerror="'this.onerror=null; this.src=\'' + {{ json_encode(\App\Models\Product::getPlaceholderUrl()) }} + '\';'" class="w-full h-full object-cover">
                         <span class="absolute top-1 right-1 bg-slate-900/80 backdrop-blur-md text-white text-[9px] px-2 py-0.5 rounded-full font-bold" x-text="'Stok: ' + product.stock"></span>
                     </div>
                     <h4 class="font-bold text-slate-800 text-xs line-clamp-2 leading-tight" x-text="product.name"></h4>

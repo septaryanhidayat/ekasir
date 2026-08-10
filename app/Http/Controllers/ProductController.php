@@ -38,7 +38,7 @@ class ProductController extends Controller
             'hpp' => 'nullable|numeric|min:0',
             'harga_jual' => 'nullable|numeric|min:0',
             'stock' => 'required|integer|min:0',
-            'image' => 'nullable|image|max:4096',
+            'image' => 'nullable|file|mimes:jpg,jpeg,png,webp,gif,bmp,heic|max:20480',
             'tenant_id' => 'nullable|exists:tenants,id',
             'created_at' => 'nullable|string',
             'updated_at' => 'nullable|string',
@@ -71,7 +71,7 @@ class ProductController extends Controller
             if ($request->filled('name')) $product->name = $request->name;
 
             if ($request->hasFile('image')) {
-                $product->image = $request->file('image')->store('products', 'public');
+                $product->image = \App\Services\ImageOptimizer::compressAndStore($request->file('image'));
             }
 
             if ($request->filled('created_at')) {
@@ -92,7 +92,7 @@ class ProductController extends Controller
         // Mode 2: Create New Product
         $imagePath = null;
         if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('products', 'public');
+            $imagePath = \App\Services\ImageOptimizer::compressAndStore($request->file('image'));
         }
 
         $barcode = $request->barcode ?: 'BRD' . date('Ymd') . rand(1000, 9999);
@@ -131,7 +131,7 @@ class ProductController extends Controller
             'hpp' => 'required|numeric|min:0',
             'harga_jual' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
-            'image' => 'nullable|image|max:4096',
+            'image' => 'nullable|file|mimes:jpg,jpeg,png,webp,gif,bmp,heic|max:20480',
             'created_at' => 'nullable|string',
             'updated_at' => 'nullable|string',
         ]);
@@ -148,7 +148,7 @@ class ProductController extends Controller
         ];
 
         if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('products', 'public');
+            $data['image'] = \App\Services\ImageOptimizer::compressAndStore($request->file('image'));
         }
 
         if ($request->filled('created_at')) {
