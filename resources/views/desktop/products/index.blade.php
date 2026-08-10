@@ -61,7 +61,17 @@
             <button type="submit" class="px-4 py-2.5 bg-slate-900 text-white text-xs font-bold rounded-xl hover:bg-slate-800 shrink-0">Cari</button>
         </form>
 
-        <div class="flex items-center space-x-2 w-full sm:w-auto">
+            <!-- Compress All Images Button -->
+            <form action="{{ route('desktop.products.compress-all') }}" method="POST" class="inline" onsubmit="return confirm('Kompres ulang seluruh foto produk lama menjadi WebP < 50KB?')">
+                @csrf
+                <button type="submit" title="Kompres seluruh foto produk lama di server" class="px-3.5 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl shadow-lg flex items-center justify-center space-x-1.5 transition">
+                    <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                    </svg>
+                    <span>Kompres Foto Lama</span>
+                </button>
+            </form>
+
             <!-- Bulk Print Button -->
             <button @click="openBulkPrint(@js($products->items()))" class="flex-1 sm:flex-none px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-emerald-500/20 flex items-center justify-center space-x-1.5 transition">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

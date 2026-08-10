@@ -77,6 +77,7 @@ Route::middleware(['auth'])->group(function () {
         // Products Management
         Route::get('/products', [ProductController::class, 'index'])->name('products.index');
         Route::post('/products', [ProductController::class, 'store'])->name('products.store');
+        Route::post('/products/compress-all', [ProductController::class, 'compressAllImages'])->name('products.compress-all');
         Route::put('/products/{product}', [ProductController::class, 'update'])->name('products.update');
         Route::delete('/products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
 

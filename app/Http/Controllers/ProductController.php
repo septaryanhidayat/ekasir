@@ -171,4 +171,11 @@ class ProductController extends Controller
         $product->delete();
         return back()->with('success', 'Produk berhasil dihapus!');
     }
+
+    public function compressAllImages()
+    {
+        \Illuminate\Support\Facades\Artisan::call('products:compress-images', ['--force' => true]);
+        $output = \Illuminate\Support\Facades\Artisan::output();
+        return back()->with('success', 'Proses kompresi foto produk lama selesai! ' . trim($output));
+    }
 }

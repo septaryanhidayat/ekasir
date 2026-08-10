@@ -441,6 +441,32 @@ class EKasirMultiOutletTest extends TestCase
         $this->assertNotNull($updatedProduct->image);
         $this->assertStringContainsString('products/', $updatedProduct->image);
     }
+
+    public function test_compress_product_images_command_compresses_all_existing_large_photos(): void
+    {
+        $tenant = Tenant::create(['name' => 'Outlet Bulk Compress', 'code' => 'OUT-BULK']);
+
+        $largeFile = \Illuminate\Http\UploadedFile::fake()->image('old_large.jpg', 2000, 2000);
+        $storedPath = $largeFile->store('products', 'public');
+
+        $product = Product::create([
+            'tenant_id' => $tenant->id,
+            'name' => 'Old Large Product',
+            'barcode' => 'BRD-OLD-LARGE',
+            'hpp' => 1000,
+            'harga_jual' => 2000,
+            'stock' => 10,
+            'image' => $storedPath,
+            'is_active' => true,
+        ]);
+
+        $this->artisan('products:compress-images')
+            ->assertExitCode(0);
+
+        $product->refresh();
+        $this->assertNotNull($product->image);
+        $this->assertStringEndsWith('.webp', $product->image);
+    }
 }
 
 
