@@ -64,7 +64,6 @@
                 <span>+ Tambah Produk</span>
             </button>
         </div>
-    </div>
 
     <!-- Mobile Select All Bar (Visible only on Mobile) -->
     <div class="flex md:hidden items-center justify-between bg-white p-3 rounded-2xl border border-slate-100 mb-3 shadow-sm">

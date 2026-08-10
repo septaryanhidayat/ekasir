@@ -57,9 +57,11 @@ class CompressProductImages extends Command
             }
 
             $originalSizeBytes = filesize($targetPath);
+            $imageInfo = @getimagesize($targetPath);
+            $isSquare = ($imageInfo && isset($imageInfo[0], $imageInfo[1]) && $imageInfo[0] === $imageInfo[1]);
 
-            // Skip if file is already small (< 50KB) and webp
-            if ($originalSizeBytes <= 50 * 1024 && !$this->option('force') && str_ends_with(strtolower($cleanPath), '.webp')) {
+            // Skip if file is already small (< 50KB), 1:1 square ratio and webp (unless --force is specified)
+            if ($originalSizeBytes <= 50 * 1024 && $isSquare && !$this->option('force') && str_ends_with(strtolower($cleanPath), '.webp')) {
                 continue;
             }
 

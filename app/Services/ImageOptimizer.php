@@ -39,6 +39,15 @@ class ImageOptimizer
 
         // Try creating GD image resource
         $img = @imagecreatefromstring($imageString);
+        if (!$img && function_exists('imagecreatefromwebp')) {
+            $tmpFile = tempnam(sys_get_temp_dir(), 'webp_');
+            if ($tmpFile) {
+                file_put_contents($tmpFile, $imageString);
+                $img = @imagecreatefromwebp($tmpFile);
+                @unlink($tmpFile);
+            }
+        }
+
         if (!$img) {
             if ($source instanceof UploadedFile) {
                 return $source->store($folder, 'public');
