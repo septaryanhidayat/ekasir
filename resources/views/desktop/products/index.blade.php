@@ -43,6 +43,31 @@
     showBarcodeCode: true,
     showPrice: true,
 
+    inputMode: 'new',
+    selectedRestockProductId: '',
+    restockStockAction: 'add',
+    restockStock: 0,
+    restockHpp: '',
+    restockHargaJual: '',
+    restockSupplierId: '',
+    restockBarcode: '',
+    allProductsList: {{ json_encode($products->items()) }},
+
+    onSelectRestockProductChange() {
+        const prod = this.allProductsList.find(p => p.id == this.selectedRestockProductId);
+        if (prod) {
+            this.restockHpp = prod.hpp;
+            this.restockHargaJual = prod.harga_jual;
+            this.restockSupplierId = prod.supplier_id || '';
+            this.restockBarcode = prod.barcode || '';
+        } else {
+            this.restockHpp = '';
+            this.restockHargaJual = '';
+            this.restockSupplierId = '';
+            this.restockBarcode = '';
+        }
+    },
+
     selectedProductIds: [],
     selectAll: false,
     bulkProducts: [],
@@ -321,13 +346,45 @@
         </div>
     </div>
 
-    <!-- Modal Add Product -->
+    <!-- Modal Add / Restock Product -->
     <div x-show="showAddModal" x-transition class="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" style="display: none;">
-        <div @click.away="showAddModal = false" class="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
-            <h3 class="font-extrabold text-slate-800 text-base">Tambah Produk Baru</h3>
+        <div @click.away="showAddModal = false" class="bg-white rounded-3xl p-6 w-full max-w-lg shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div>
+                    <h3 class="font-extrabold text-slate-800 text-base">Kelola Produk & Stok</h3>
+                    <p class="text-[11px] text-slate-500">Tambah barang baru atau update stok toko</p>
+                </div>
+                <button type="button" @click="showAddModal = false" class="text-slate-400 hover:text-slate-600 font-bold text-lg">&times;</button>
+            </div>
 
+            <!-- Mode Switcher Tabs (+ Tambah Baru VS 📦 Restok / Update) -->
+            <div class="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-2xl text-xs font-bold">
+                <button type="button" 
+                        @click="inputMode = 'new'" 
+                        :class="inputMode === 'new' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-600 hover:text-slate-900'"
+                        class="py-2.5 rounded-xl transition flex items-center justify-center space-x-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    <span>+ Tambah Baru</span>
+                </button>
+
+                <button type="button" 
+                        @click="inputMode = 'update'" 
+                        :class="inputMode === 'update' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-600 hover:text-slate-900'"
+                        class="py-2.5 rounded-xl transition flex items-center justify-center space-x-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                    <span>📦 Restok / Update</span>
+                </button>
+            </div>
+
+            <!-- MAIN FORM -->
             <form action="{{ route('desktop.products.store') }}" method="POST" enctype="multipart/form-data" class="space-y-3 text-xs">
                 @csrf
+                <input type="hidden" name="mode" :value="inputMode">
+
                 @if(auth()->user()->role === 'superadmin')
                     <div>
                         <label class="block font-bold text-slate-700 mb-1">Outlet / Tenant</label>
@@ -339,68 +396,145 @@
                     </div>
                 @endif
 
-                <div>
-                    <label class="block font-bold text-slate-700 mb-1">Nama Produk</label>
-                    <input type="text" name="name" required placeholder="Contoh: Aqua Gelas / Ciki..." class="w-full px-3 py-2 bg-slate-100 rounded-xl border border-slate-200">
-                </div>
+                <!-- MODE 1: TAMBAH PRODUK BARU -->
+                <template x-if="inputMode === 'new'">
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">Nama Produk</label>
+                            <input type="text" name="name" required placeholder="Contoh: Aqua Gelas / Ciki..." class="w-full px-3 py-2 bg-slate-100 rounded-xl border border-slate-200 font-semibold">
+                        </div>
 
-                <div>
-                    <label class="block font-bold text-slate-700 mb-1">Suplier / Distributor (Opsional)</label>
-                    <select name="supplier_id" class="w-full px-3 py-2 bg-slate-100 rounded-xl border border-slate-200 font-semibold">
-                        <option value="">-- Tanpa Suplier --</option>
-                        @foreach($suppliers as $s)
-                            <option value="{{ $s->id }}">{{ $s->name }} ({{ $s->code }})</option>
-                        @endforeach
-                    </select>
-                </div>
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">Suplier / Distributor (Opsional)</label>
+                            <select name="supplier_id" class="w-full px-3 py-2 bg-slate-100 rounded-xl border border-slate-200 font-semibold">
+                                <option value="">-- Tanpa Suplier --</option>
+                                @foreach($suppliers as $s)
+                                    <option value="{{ $s->id }}">{{ $s->name }} ({{ $s->code }})</option>
+                                @endforeach
+                            </select>
+                        </div>
 
-                <div>
-                    <label class="block font-bold text-slate-700 mb-1">Kode Barcode (Opsional)</label>
-                    <div class="flex space-x-2">
-                        <input type="text" name="barcode" x-model="selectedProduct.barcode" placeholder="Scan atau biarkan kosong (auto-generate)..." class="w-full px-3 py-2 bg-slate-100 rounded-xl border border-slate-200 font-mono">
-                        <button type="button" @click="selectedProduct.barcode = 'BRD' + (new Date().toISOString().slice(0,10).replace(/-/g,'')) + Math.floor(1000 + Math.random() * 9000)" class="px-3 py-2 bg-slate-800 text-white font-bold rounded-xl text-[10px] shrink-0 hover:bg-slate-700">
-                            Auto Code
-                        </button>
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">Kode Barcode (Opsional)</label>
+                            <div class="flex space-x-2">
+                                <input type="text" name="barcode" x-model="selectedProduct.barcode" placeholder="Scan atau biarkan kosong (auto-generate)..." class="w-full px-3 py-2 bg-slate-100 rounded-xl border border-slate-200 font-mono">
+                                <button type="button" @click="selectedProduct.barcode = 'BRD' + (new Date().toISOString().slice(0,10).replace(/-/g,'')) + Math.floor(1000 + Math.random() * 9000)" class="px-3 py-2 bg-slate-800 text-white font-bold rounded-xl text-[10px] shrink-0 hover:bg-slate-700">
+                                    Auto Code
+                                </button>
+                            </div>
+                            <p class="text-[10px] text-slate-400 mt-1">*Jika dikosongkan, sistem akan membuat kode barcode otomatis.</p>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1">HPP (Modal)</label>
+                                <input type="number" name="hpp" required placeholder="0" class="w-full px-3 py-2 bg-slate-100 rounded-xl border border-slate-200 font-bold">
+                            </div>
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1">Harga Jual</label>
+                                <input type="number" name="harga_jual" required placeholder="0" class="w-full px-3 py-2 bg-slate-100 rounded-xl border border-slate-200 font-bold text-indigo-600">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">Stok Awal</label>
+                            <input type="number" name="stock" value="50" required class="w-full px-3 py-2 bg-slate-100 rounded-xl border border-slate-200 font-bold">
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1">Tanggal Masuk (WIB)</label>
+                                <input type="datetime-local" name="created_at" value="{{ now('Asia/Jakarta')->format('Y-m-d\TH:i') }}" class="w-full px-3 py-2 bg-slate-100 rounded-xl border border-slate-200 text-slate-700 font-semibold text-xs">
+                            </div>
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1">Tanggal Update (WIB)</label>
+                                <input type="datetime-local" name="updated_at" value="{{ now('Asia/Jakarta')->format('Y-m-d\TH:i') }}" class="w-full px-3 py-2 bg-slate-100 rounded-xl border border-slate-200 text-slate-700 font-semibold text-xs">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">Foto Produk</label>
+                            <input type="file" name="image" class="w-full text-slate-500 text-xs">
+                        </div>
+
+                        <div class="flex justify-end space-x-2 pt-2">
+                            <button type="button" @click="showAddModal = false" class="px-4 py-2 bg-slate-100 text-slate-600 font-bold rounded-xl">Batal</button>
+                            <button type="submit" class="px-4 py-2 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition">+ Simpan Produk Baru</button>
+                        </div>
                     </div>
-                    <p class="text-[10px] text-slate-400 mt-1">*Jika dikosongkan, sistem akan membuat kode barcode otomatis.</p>
-                </div>
+                </template>
 
-                <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="block font-bold text-slate-700 mb-1">HPP (Modal)</label>
-                        <input type="number" name="hpp" required placeholder="0" class="w-full px-3 py-2 bg-slate-100 rounded-xl border border-slate-200">
+                <!-- MODE 2: RESTOK / UPDATE STOK BARANG LAMA -->
+                <template x-if="inputMode === 'update'">
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">Pilih Produk Untuk Di-Restok</label>
+                            <select name="product_id" x-model="selectedRestockProductId" @change="onSelectRestockProductChange()" required class="w-full px-3 py-2 bg-slate-100 rounded-xl border border-slate-200 font-bold text-slate-800">
+                                <option value="">-- Pilih Produk Dari List --</option>
+                                @foreach($products as $p)
+                                    <option value="{{ $p->id }}">
+                                        {{ $p->name }} (Stok: {{ $p->stock }} | {{ $p->barcode ?? 'No Barcode' }})
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <!-- Action Mode (Tambah ke stok lama vs Overwrite Total Stok) -->
+                        <div class="p-3 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
+                            <label class="block font-extrabold text-slate-700 text-[10px] uppercase tracking-wider">Aksi Pembaruan Stok:</label>
+                            <div class="grid grid-cols-2 gap-2 text-xs font-bold">
+                                <label class="flex items-center space-x-2 p-2 bg-white rounded-xl border border-slate-200 cursor-pointer">
+                                    <input type="radio" name="stock_action" value="add" x-model="restockStockAction" class="text-indigo-600 focus:ring-indigo-500">
+                                    <span class="text-[11px] text-emerald-700">+ Tambah Ke Stok Lama</span>
+                                </label>
+                                <label class="flex items-center space-x-2 p-2 bg-white rounded-xl border border-slate-200 cursor-pointer">
+                                    <input type="radio" name="stock_action" value="set" x-model="restockStockAction" class="text-indigo-600 focus:ring-indigo-500">
+                                    <span class="text-[11px] text-indigo-700">Set Total Stok Baru</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1" x-text="restockStockAction === 'add' ? 'Jumlah Stok Yang Ditambahkan (Pcs/Unit)' : 'Total Stok Baru Produk'"></label>
+                            <input type="number" name="stock" x-model="restockStock" required placeholder="0"
+                                   class="w-full px-3 py-2 bg-slate-100 text-slate-800 text-xs border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold">
+                        </div>
+
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">Suplier / Distributor (Opsional)</label>
+                            <select name="supplier_id" x-model="restockSupplierId" class="w-full px-3 py-2 bg-slate-100 rounded-xl border border-slate-200 font-semibold">
+                                <option value="">-- Tanpa Suplier --</option>
+                                @foreach($suppliers as $s)
+                                    <option value="{{ $s->id }}">{{ $s->name }} ({{ $s->code }})</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1">Update HPP (Opsional)</label>
+                                <input type="number" name="hpp" x-model="restockHpp" placeholder="Tetap"
+                                       class="w-full px-3 py-2 bg-slate-100 rounded-xl border border-slate-200 text-xs font-semibold">
+                            </div>
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1">Update Harga Jual</label>
+                                <input type="number" name="harga_jual" x-model="restockHargaJual" placeholder="Tetap"
+                                       class="w-full px-3 py-2 bg-slate-100 rounded-xl border border-slate-200 text-xs font-bold text-indigo-600">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">Tanggal Update Stok (WIB)</label>
+                            <input type="datetime-local" name="updated_at" value="{{ now('Asia/Jakarta')->format('Y-m-d\TH:i') }}"
+                                   class="w-full px-3 py-2 bg-slate-100 rounded-xl border border-slate-200 text-slate-700 font-semibold text-xs">
+                        </div>
+
+                        <div class="flex justify-end space-x-2 pt-2">
+                            <button type="button" @click="showAddModal = false" class="px-4 py-2 bg-slate-100 text-slate-600 font-bold rounded-xl">Batal</button>
+                            <button type="submit" class="px-4 py-2 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition">📦 Simpan Pembaruan Stok</button>
+                        </div>
                     </div>
-                    <div>
-                        <label class="block font-bold text-slate-700 mb-1">Harga Jual</label>
-                        <input type="number" name="harga_jual" required placeholder="0" class="w-full px-3 py-2 bg-slate-100 rounded-xl border border-slate-200 font-bold text-indigo-600">
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block font-bold text-slate-700 mb-1">Stok Awal</label>
-                    <input type="number" name="stock" value="50" required class="w-full px-3 py-2 bg-slate-100 rounded-xl border border-slate-200">
-                </div>
-
-                <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="block font-bold text-slate-700 mb-1">Tanggal Masuk (WIB)</label>
-                        <input type="datetime-local" name="created_at" value="{{ now('Asia/Jakarta')->format('Y-m-d\TH:i') }}" class="w-full px-3 py-2 bg-slate-100 rounded-xl border border-slate-200 text-slate-700 font-semibold">
-                    </div>
-                    <div>
-                        <label class="block font-bold text-slate-700 mb-1">Tanggal Update (WIB)</label>
-                        <input type="datetime-local" name="updated_at" value="{{ now('Asia/Jakarta')->format('Y-m-d\TH:i') }}" class="w-full px-3 py-2 bg-slate-100 rounded-xl border border-slate-200 text-slate-700 font-semibold">
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block font-bold text-slate-700 mb-1">Foto Produk</label>
-                    <input type="file" name="image" class="w-full text-slate-500">
-                </div>
-
-                <div class="flex justify-end space-x-2 pt-2">
-                    <button type="button" @click="showAddModal = false" class="px-4 py-2 bg-slate-100 text-slate-600 font-bold rounded-xl">Batal</button>
-                    <button type="submit" class="px-4 py-2 bg-indigo-600 text-white font-bold rounded-xl">Simpan Produk</button>
-                </div>
+                </template>
             </form>
         </div>
     </div>

@@ -13,7 +13,8 @@ class SmartInputController extends Controller
     public function index()
     {
         $products = Product::where('is_active', true)->orderBy('name')->get();
-        return view('mobile.smart-input', compact('products'));
+        $suppliers = \App\Models\Supplier::where('is_active', true)->orderBy('name')->get();
+        return view('mobile.smart-input', compact('products', 'suppliers'));
     }
 
     public function store(Request $request)
@@ -21,6 +22,7 @@ class SmartInputController extends Controller
         $request->validate([
             'mode' => 'nullable|string|in:new,update,update_stock',
             'product_id' => 'required_if:mode,update,update_stock|nullable|exists:products,id',
+            'supplier_id' => 'nullable|exists:suppliers,id',
             'stock_action' => 'nullable|string|in:add,set',
             'name' => 'required_if:mode,new|nullable|string|max:255',
             'barcode' => 'nullable|string|max:100',
@@ -54,6 +56,7 @@ class SmartInputController extends Controller
                 $product->stock = (int) $request->stock;
             }
 
+            if ($request->has('supplier_id')) $product->supplier_id = $request->supplier_id;
             if ($request->filled('hpp')) $product->hpp = $request->hpp;
             if ($request->filled('harga_jual')) $product->harga_jual = $request->harga_jual;
             if ($request->filled('barcode')) $product->barcode = $request->barcode;
@@ -99,6 +102,7 @@ class SmartInputController extends Controller
 
         $productData = [
             'tenant_id' => $tenantId,
+            'supplier_id' => $request->supplier_id,
             'name' => $request->name,
             'barcode' => $barcode,
             'image' => $imagePath,

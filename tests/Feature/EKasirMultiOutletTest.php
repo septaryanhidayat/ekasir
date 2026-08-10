@@ -263,5 +263,64 @@ class EKasirMultiOutletTest extends TestCase
         $responseSet->assertRedirect(route('mobile.dashboard'));
         $this->assertEquals(100, $product->fresh()->stock);
     }
+
+    public function test_mobile_smart_input_and_desktop_support_supplier(): void
+    {
+        $tenant = Tenant::create([
+            'name' => 'Outlet Supplier Test',
+            'code' => 'OUT-SUPP',
+        ]);
+
+        $user = User::create([
+            'tenant_id' => $tenant->id,
+            'name' => 'Admin Supplier',
+            'email' => 'admin_supp@test.com',
+            'password' => bcrypt('password'),
+            'role' => 'admin',
+        ]);
+
+        $supplier = \App\Models\Supplier::create([
+            'tenant_id' => $tenant->id,
+            'name' => 'PT Indofood Sukses',
+            'code' => 'SUP-INDO',
+            'phone' => '08123456789',
+        ]);
+
+        $this->actingAs($user);
+
+        // Test Mobile smart input create with supplier_id
+        $respMobile = $this->post('/m/smart-input', [
+            'mode' => 'new',
+            'name' => 'Indomie Goreng',
+            'supplier_id' => $supplier->id,
+            'hpp' => 2500,
+            'harga_jual' => 3500,
+            'stock' => 50,
+        ]);
+        $respMobile->assertRedirect(route('mobile.dashboard'));
+
+        $product = Product::where('name', 'Indomie Goreng')->first();
+        $this->assertNotNull($product);
+        $this->assertEquals($supplier->id, $product->supplier_id);
+
+        // Test Desktop store restock mode with supplier_id update
+        $respDesktop = $this->post(route('desktop.products.store'), [
+            'mode' => 'update',
+            'product_id' => $product->id,
+            'stock_action' => 'add',
+            'stock' => 20,
+            'supplier_id' => $supplier->id,
+            'hpp' => 2600,
+            'harga_jual' => 3800,
+        ]);
+        $respDesktop->assertSessionHasNoErrors();
+
+        $updatedProduct = $product->fresh();
+        $this->assertEquals(70, $updatedProduct->stock);
+        $this->assertEquals(2600, $updatedProduct->hpp);
+        $this->assertEquals(3800, $updatedProduct->harga_jual);
+        $this->assertEquals($supplier->id, $updatedProduct->supplier_id);
+    }
 }
+
 

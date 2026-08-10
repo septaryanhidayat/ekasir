@@ -29,11 +29,14 @@ class ProductController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
+            'mode' => 'nullable|string|in:new,update,update_stock',
+            'product_id' => 'required_if:mode,update,update_stock|nullable|exists:products,id',
+            'stock_action' => 'nullable|string|in:add,set',
+            'name' => 'required_if:mode,new|nullable|string|max:255',
             'supplier_id' => 'nullable|exists:suppliers,id',
             'barcode' => 'nullable|string|max:100',
-            'hpp' => 'required|numeric|min:0',
-            'harga_jual' => 'required|numeric|min:0',
+            'hpp' => 'nullable|numeric|min:0',
+            'harga_jual' => 'nullable|numeric|min:0',
             'stock' => 'required|integer|min:0',
             'image' => 'nullable|image|max:4096',
             'tenant_id' => 'nullable|exists:tenants,id',
@@ -51,6 +54,42 @@ class ProductController extends Controller
             return back()->with('error', 'Gagal menambahkan produk: Belum ada outlet/tenant yang terdaftar.');
         }
 
+        // Mode 1: Update / Restock Existing Product
+        if ($request->product_id || in_array($request->mode, ['update', 'update_stock'])) {
+            $product = Product::findOrFail($request->product_id);
+
+            if ($request->filled('stock_action') && $request->stock_action === 'add') {
+                $product->stock += (int) $request->stock;
+            } else {
+                $product->stock = (int) $request->stock;
+            }
+
+            if ($request->has('supplier_id')) $product->supplier_id = $request->supplier_id;
+            if ($request->filled('hpp')) $product->hpp = $request->hpp;
+            if ($request->filled('harga_jual')) $product->harga_jual = $request->harga_jual;
+            if ($request->filled('barcode')) $product->barcode = $request->barcode;
+            if ($request->filled('name')) $product->name = $request->name;
+
+            if ($request->hasFile('image')) {
+                $product->image = $request->file('image')->store('products', 'public');
+            }
+
+            if ($request->filled('created_at')) {
+                $product->created_at = \Carbon\Carbon::parse($request->created_at);
+            }
+
+            if ($request->filled('updated_at')) {
+                $product->updated_at = \Carbon\Carbon::parse($request->updated_at);
+            } else {
+                $product->updated_at = now();
+            }
+
+            $product->save();
+
+            return back()->with('success', "Stok produk '{$product->name}' berhasil diperbarui! Stok saat ini: {$product->stock} unit.");
+        }
+
+        // Mode 2: Create New Product
         $imagePath = null;
         if ($request->hasFile('image')) {
             $imagePath = $request->file('image')->store('products', 'public');
@@ -64,8 +103,8 @@ class ProductController extends Controller
             'name' => $request->name,
             'barcode' => $barcode,
             'image' => $imagePath,
-            'hpp' => $request->hpp,
-            'harga_jual' => $request->harga_jual,
+            'hpp' => $request->hpp ?? 0,
+            'harga_jual' => $request->harga_jual ?? 0,
             'stock' => $request->stock,
             'is_active' => true,
         ];
@@ -78,9 +117,9 @@ class ProductController extends Controller
             $productData['updated_at'] = \Carbon\Carbon::parse($request->updated_at);
         }
 
-        Product::create($productData);
+        $product = Product::create($productData);
 
-        return back()->with('success', 'Produk berhasil ditambahkan!');
+        return back()->with('success', "Produk baru '{$product->name}' berhasil ditambahkan dengan stok {$product->stock} unit!");
     }
 
     public function update(Request $request, Product $product)
