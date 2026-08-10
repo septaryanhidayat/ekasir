@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\BackupController;
 use App\Http\Controllers\CashRegisterController;
 use App\Http\Controllers\CustomerOrderController;
 use App\Http\Controllers\DashboardController;
@@ -35,6 +36,8 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // Authenticated Routes (Staff / Cashier / Manager / Superadmin)
 Route::middleware(['auth'])->group(function () {
+    Route::get('/backup/download', [BackupController::class, 'download'])->name('backup.download');
+    Route::post('/backup/import', [BackupController::class, 'import'])->name('backup.import');
     Route::post('/switch-tenant/{tenant}', [AuthController::class, 'switchTenant'])->name('switch-tenant');
 
     // Mobile POS Routes (Mobile Banking Style)

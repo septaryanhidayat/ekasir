@@ -321,6 +321,67 @@ class EKasirMultiOutletTest extends TestCase
         $this->assertEquals(3800, $updatedProduct->harga_jual);
         $this->assertEquals($supplier->id, $updatedProduct->supplier_id);
     }
+
+    public function test_authenticated_user_can_download_database_backup(): void
+    {
+        $tenant = Tenant::create([
+            'name' => 'Outlet Backup Test',
+            'code' => 'OUT-BACKUP',
+        ]);
+
+        $user = User::create([
+            'tenant_id' => $tenant->id,
+            'name' => 'Admin Backup',
+            'email' => 'admin_backup@test.com',
+            'password' => bcrypt('password'),
+            'role' => 'admin',
+        ]);
+
+        $this->actingAs($user);
+
+        $response = $this->get(route('backup.download'));
+
+        $response->assertStatus(200);
+        $response->assertHeader('Content-Type', 'application/sql');
+        $this->assertStringContainsString('E-KASIR POS DATABASE BACKUP', $response->getContent());
+        $this->assertTrue(str_contains($response->getContent(), 'FOREIGN_KEY_CHECKS=0') || str_contains($response->getContent(), 'foreign_keys = OFF'));
+        $this->assertStringContainsString('INSERT INTO `users`', $response->getContent());
+    }
+
+    public function test_authenticated_user_can_import_database_backup(): void
+    {
+        $tenant = Tenant::create([
+            'name' => 'Outlet Import Test',
+            'code' => 'OUT-IMPORT',
+        ]);
+
+        $user = User::create([
+            'tenant_id' => $tenant->id,
+            'name' => 'Admin Import',
+            'email' => 'admin_import@test.com',
+            'password' => bcrypt('password'),
+            'role' => 'admin',
+        ]);
+
+        $this->actingAs($user);
+
+        $dummySql = "-- Dummy MySQL Backup\nSET FOREIGN_KEY_CHECKS=0;\nDELETE FROM `tenants`;\nINSERT INTO `tenants` (`id`, `name`, `code`, `created_at`, `updated_at`) VALUES (999, 'Restored Tenant', 'OUT-RESTORED', '2026-08-10 10:45:00', '2026-08-10 10:45:00');\nSET FOREIGN_KEY_CHECKS=1;\n";
+        $tempPath = sys_get_temp_dir() . '/backup_test.sql';
+        file_put_contents($tempPath, $dummySql);
+        $file = new \Illuminate\Http\UploadedFile($tempPath, 'backup.sql', 'text/plain', null, true);
+
+        $response = $this->post(route('backup.import'), [
+            'backup_file' => $file,
+        ]);
+
+        $response->assertSessionHasNoErrors();
+        $response->assertSessionHas('success');
+        $this->assertDatabaseHas('tenants', [
+            'id' => 999,
+            'name' => 'Restored Tenant',
+            'code' => 'OUT-RESTORED',
+        ]);
+    }
 }
 
 

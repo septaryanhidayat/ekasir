@@ -175,6 +175,21 @@
             </div>
         </a>
 
+        <!-- Menu Backup Database -->
+        <a href="{{ route('backup.download') }}" class="group glass-card p-5 rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 relative overflow-hidden flex flex-col items-center text-center col-span-2 border border-slate-200/80 bg-slate-50/50">
+            <div class="flex items-center space-x-3 text-left w-full">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-slate-700 to-slate-900 text-white flex items-center justify-center shadow-lg shadow-slate-900/30 shrink-0 group-hover:scale-110 transition-transform">
+                    <svg class="w-6 h-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h4 class="font-extrabold text-slate-800 text-sm">Backup Database (.SQL)</h4>
+                    <p class="text-[11px] text-slate-500">Unduh berkas cadangan database toko</p>
+                </div>
+            </div>
+        </a>
+
         @if(auth()->check() && (auth()->user()->role === 'superadmin' || auth()->user()->role === 'manager'))
             <!-- Menu 5: Manajemen Produk & Stok (Khusus Admin/Manajer) -->
             <a href="{{ route('desktop.products.index') }}" class="group glass-card p-5 rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 relative overflow-hidden flex flex-col items-center text-center col-span-2 border border-indigo-200/80 bg-indigo-50/40">
