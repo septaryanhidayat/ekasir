@@ -31,7 +31,7 @@
     <!-- Scanner Modal Overlay -->
     <div x-show="showScanner" 
          x-transition
-         class="fixed inset-0 z-50 bg-black/90 flex flex-col justify-between p-4" 
+         class="fixed inset-0 z-[100] bg-black/90 flex flex-col justify-between p-4" 
          style="display: none;">
         <div class="flex items-center justify-between text-white mb-2">
             <h3 class="font-bold text-sm">Arahkan Kamera ke Barcode</h3>
@@ -96,9 +96,9 @@
     <!-- Checkout Modal / Drawer -->
     <div x-show="showCheckoutModal" 
          x-transition
-         class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end justify-center" 
+         class="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-end justify-center pb-4 sm:pb-0" 
          style="display: none;">
-        <div @click.away="showCheckoutModal = false" class="w-full max-w-[480px] bg-white rounded-t-[2.5rem] p-6 max-h-[90vh] overflow-y-auto space-y-5">
+        <div @click.away="showCheckoutModal = false" class="w-full max-w-[480px] bg-white rounded-t-[2.5rem] p-6 pb-12 max-h-[82vh] overflow-y-auto space-y-4 shadow-2xl">
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                 <h3 class="font-extrabold text-slate-800 text-base">Rincian Pembayaran</h3>
                 <button @click="showCheckoutModal = false" class="text-slate-400 hover:text-slate-600">
@@ -109,7 +109,7 @@
             </div>
 
             <!-- Cart Items Summary List -->
-            <div class="space-y-2 max-h-48 overflow-y-auto pr-1">
+            <div class="space-y-2 max-h-40 overflow-y-auto pr-1">
                 <template x-for="(item, index) in cart" :key="item.id">
                     <div class="flex items-center justify-between p-2.5 bg-slate-50 rounded-2xl text-xs">
                         <div class="flex-1 mr-2">
@@ -160,12 +160,14 @@
             </div>
 
             <!-- Submit Button -->
-            <button @click="submitCheckout()" 
-                    :disabled="cashPaid < totalAmount || loading" 
-                    class="w-full py-4 bg-gradient-to-r from-emerald-500 to-teal-600 disabled:opacity-50 text-white font-extrabold text-sm rounded-2xl shadow-lg shadow-emerald-500/30 transition transform active:scale-95">
-                <span x-show="!loading">Selesaikan Transaksi & Cetak Struk</span>
-                <span x-show="loading" style="display:none;">Memproses Transaksi...</span>
-            </button>
+            <div class="pb-6">
+                <button @click="submitCheckout()" 
+                        :disabled="cashPaid < totalAmount || loading" 
+                        class="w-full py-4 bg-gradient-to-r from-emerald-500 to-teal-600 disabled:opacity-50 text-white font-extrabold text-sm rounded-2xl shadow-lg shadow-emerald-500/30 transition transform active:scale-95">
+                    <span x-show="!loading">Selesaikan Transaksi & Cetak Struk</span>
+                    <span x-show="loading" style="display:none;">Memproses Transaksi...</span>
+                </button>
+            </div>
         </div>
     </div>
 </div>

@@ -100,7 +100,7 @@
     </header>
 
     <!-- Main Content Slot -->
-    <main class="-mt-8 px-4 relative z-10">
+    <main class="-mt-8 px-4 relative">
         @if(session('success'))
             <div class="mb-4 p-3 bg-emerald-500 text-white text-xs font-semibold rounded-2xl shadow-lg flex items-center justify-between">
                 <span>{{ session('success') }}</span>

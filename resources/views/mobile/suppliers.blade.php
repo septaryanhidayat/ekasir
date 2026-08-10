@@ -109,8 +109,8 @@
     </div>
 
     <!-- Modal Add Supplier Mobile -->
-    <div x-show="showAddModal" x-transition class="fixed inset-0 z-50 bg-black/60 flex items-end sm:items-center justify-center p-0 sm:p-4" style="display: none;">
-        <div @click.away="showAddModal = false" class="bg-white rounded-t-3xl sm:rounded-3xl p-6 w-full max-w-md shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+    <div x-show="showAddModal" x-transition class="fixed inset-0 z-[100] bg-black/60 flex items-end sm:items-center justify-center p-0 sm:p-4" style="display: none;">
+        <div @click.away="showAddModal = false" class="bg-white rounded-t-3xl sm:rounded-3xl p-6 pb-10 w-full max-w-md shadow-2xl space-y-4 max-h-[85vh] overflow-y-auto">
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                 <h3 class="font-extrabold text-slate-800 text-sm">Tambah Suplier Baru</h3>
                 <button @click="showAddModal = false" class="text-slate-400 font-bold text-lg">&times;</button>
@@ -147,8 +147,8 @@
     </div>
 
     <!-- Modal Edit Supplier Mobile -->
-    <div x-show="editModal" x-transition class="fixed inset-0 z-50 bg-black/60 flex items-end sm:items-center justify-center p-0 sm:p-4" style="display: none;">
-        <div @click.away="editModal = false" class="bg-white rounded-t-3xl sm:rounded-3xl p-6 w-full max-w-md shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+    <div x-show="editModal" x-transition class="fixed inset-0 z-[100] bg-black/60 flex items-end sm:items-center justify-center p-0 sm:p-4" style="display: none;">
+        <div @click.away="editModal = false" class="bg-white rounded-t-3xl sm:rounded-3xl p-6 pb-10 w-full max-w-md shadow-2xl space-y-4 max-h-[85vh] overflow-y-auto">
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                 <h3 class="font-extrabold text-slate-800 text-sm">Edit Data Suplier</h3>
                 <button @click="editModal = false" class="text-slate-400 font-bold text-lg">&times;</button>
