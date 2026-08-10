@@ -116,11 +116,17 @@
                             <p class="font-bold text-slate-800" x-text="item.name"></p>
                             <p class="text-[10px] text-slate-400" x-text="formatRupiah(item.harga_jual) + ' x ' + item.qty"></p>
                         </div>
-                        <div class="flex items-center space-x-2">
-                            <button @click="updateQty(index, -1)" class="w-6 h-6 rounded-lg bg-slate-200 font-bold text-slate-700">-</button>
-                            <span class="font-bold text-slate-800" x-text="item.qty"></span>
-                            <button @click="updateQty(index, 1)" class="w-6 h-6 rounded-lg bg-indigo-600 text-white font-bold">+</button>
-                            <span class="font-extrabold text-slate-800 ml-2" x-text="formatRupiah(item.harga_jual * item.qty)"></span>
+                        <div class="flex items-center space-x-1.5">
+                            <button type="button" @click="updateQty(index, -1)" class="w-6 h-6 rounded-lg bg-slate-200 font-bold text-slate-700 flex items-center justify-center hover:bg-slate-300 transition text-xs shrink-0">-</button>
+                            <input type="number" 
+                                   min="1" 
+                                   :max="item.stock" 
+                                   x-model.number="item.qty" 
+                                   @input="validateQty(index)" 
+                                   @blur="normalizeQty(index)" 
+                                   class="w-12 h-6 text-center font-bold text-slate-800 bg-white border border-slate-300 rounded-md text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500 p-0">
+                            <button type="button" @click="updateQty(index, 1)" class="w-6 h-6 rounded-lg bg-indigo-600 text-white font-bold flex items-center justify-center hover:bg-indigo-700 transition text-xs shrink-0">+</button>
+                            <span class="font-extrabold text-slate-800 ml-1.5 text-xs shrink-0" x-text="formatRupiah(item.harga_jual * (item.qty || 0))"></span>
                         </div>
                     </div>
                 </template>
@@ -228,19 +234,44 @@ function posApp() {
         updateQty(index, change) {
             const item = this.cart[index];
             if (item) {
-                item.qty += change;
-                if (item.qty <= 0) {
+                let newQty = (parseInt(item.qty) || 0) + change;
+                if (newQty > item.stock) {
+                    alert('Stok produk terbatas! (Maks: ' + item.stock + ')');
+                    return;
+                }
+                if (newQty <= 0) {
                     this.cart.splice(index, 1);
+                } else {
+                    item.qty = newQty;
+                }
+            }
+        },
+
+        validateQty(index) {
+            const item = this.cart[index];
+            if (item) {
+                if (item.qty > item.stock) {
+                    alert('Jumlah melebihi stok produk! (Stok: ' + item.stock + ')');
+                    item.qty = item.stock;
+                }
+            }
+        },
+
+        normalizeQty(index) {
+            const item = this.cart[index];
+            if (item) {
+                if (!item.qty || item.qty < 1) {
+                    item.qty = 1;
                 }
             }
         },
 
         get totalQty() {
-            return this.cart.reduce((sum, item) => sum + item.qty, 0);
+            return this.cart.reduce((sum, item) => sum + (parseInt(item.qty) || 0), 0);
         },
 
         get totalAmount() {
-            return this.cart.reduce((sum, item) => sum + (item.harga_jual * item.qty), 0);
+            return this.cart.reduce((sum, item) => sum + (item.harga_jual * (parseInt(item.qty) || 0)), 0);
         },
 
         openScanner() {
