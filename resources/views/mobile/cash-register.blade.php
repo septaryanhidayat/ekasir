@@ -126,7 +126,7 @@
             <div>
                 <h4 class="font-bold text-rose-700 text-xs uppercase tracking-wider mb-3">Tutup Kas & Rekap Shift</h4>
                 
-                <form action="{{ route('mobile.cash-register.close') }}" method="POST" class="space-y-3" onsubmit="return confirm('Apakah Anda yakin ingin menutup kas shift ini?')">
+                <form action="{{ route('mobile.cash-register.close') }}" method="POST" class="space-y-3" onsubmit="return confirmFormSubmit(event, 'Apakah Anda yakin ingin menutup kas shift ini?', 'Tutup Kas Shift', 'Ya, Tutup Shift', 'warning')">
                     @csrf
                     <div>
                         <label class="block text-[11px] font-bold text-slate-600 mb-1">Total Uang Fisik Di Laci (Hasil Hitung)</label>

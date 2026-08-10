@@ -271,24 +271,16 @@ function smartInputApp(allProducts) {
                 const img = new Image();
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
-                    let width = img.width;
-                    let height = img.height;
-                    const maxDim = 600;
+                    const targetSize = 600;
+                    canvas.width = targetSize;
+                    canvas.height = targetSize;
 
-                    if (width > maxDim || height > maxDim) {
-                        if (width >= height) {
-                            height = Math.round((height / width) * maxDim);
-                            width = maxDim;
-                        } else {
-                            width = Math.round((width / height) * maxDim);
-                            height = maxDim;
-                        }
-                    }
+                    const cropSize = Math.min(img.width, img.height);
+                    const srcX = (img.width - cropSize) / 2;
+                    const srcY = (img.height - cropSize) / 2;
 
-                    canvas.width = width;
-                    canvas.height = height;
                     const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, width, height);
+                    ctx.drawImage(img, srcX, srcY, cropSize, cropSize, 0, 0, targetSize, targetSize);
 
                     canvas.toBlob((blob) => {
                         if (blob) {
@@ -300,7 +292,7 @@ function smartInputApp(allProducts) {
                             container.items.add(newFile);
                             fileInput.files = container.files;
                         }
-                    }, 'image/jpeg', 0.75);
+                    }, 'image/jpeg', 0.8);
                 };
                 img.src = e.target.result;
             };

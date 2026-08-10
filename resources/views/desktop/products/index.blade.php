@@ -30,29 +30,6 @@
 
 @section('content')
 <div x-data="productApp(@js($products->items()))">
-    @if(session('success'))
-        <div class="mb-4 p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-xs font-bold text-emerald-800 flex items-center justify-between">
-            <span>{{ session('success') }}</span>
-        </div>
-    @endif
-
-    @if(session('error'))
-        <div class="mb-4 p-4 bg-rose-50 border border-rose-200 rounded-2xl text-xs font-bold text-rose-800 flex items-center justify-between">
-            <span>{{ session('error') }}</span>
-        </div>
-    @endif
-
-    @if($errors->any())
-        <div class="mb-4 p-4 bg-rose-50 border border-rose-200 rounded-2xl text-xs font-bold text-rose-800 space-y-1">
-            <p class="font-extrabold text-sm mb-1">Gagal Menyimpan / Memperbarui Produk:</p>
-            <ul class="list-disc list-inside">
-                @foreach($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
-
     <!-- Action Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <form method="GET" action="{{ route('desktop.products.index') }}" class="flex items-center space-x-2 w-full sm:w-auto">
@@ -62,7 +39,7 @@
         </form>
 
             <!-- Compress All Images Button -->
-            <form action="{{ route('desktop.products.compress-all') }}" method="POST" class="inline" onsubmit="return confirm('Kompres ulang seluruh foto produk lama menjadi WebP < 50KB?')">
+            <form action="{{ route('desktop.products.compress-all') }}" method="POST" class="inline" onsubmit="return confirmFormSubmit(event, 'Kompres ulang seluruh foto produk lama menjadi WebP < 50KB?', 'Kompres Foto Produk', 'Ya, Kompres Foto', 'info')">
                 @csrf
                 <button type="submit" title="Kompres seluruh foto produk lama di server" class="px-3.5 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl shadow-lg flex items-center justify-center space-x-1.5 transition">
                     <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -148,7 +125,7 @@
                         <button @click="openEditModal(@js($p))" class="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 font-bold rounded-lg text-[10px] transition">
                             Edit
                         </button>
-                        <form action="{{ route('desktop.products.destroy', $p->id) }}" method="POST" onsubmit="return confirm('Hapus produk ini?')" class="inline">
+                        <form action="{{ route('desktop.products.destroy', $p->id) }}" method="POST" onsubmit="return confirmFormSubmit(event, 'Apakah Anda yakin ingin menghapus produk {{ $p->name }}?', 'Hapus Produk', 'Ya, Hapus', 'warning')" class="inline">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold rounded-lg text-[10px] transition">
@@ -242,7 +219,7 @@
                                         </svg>
                                     </button>
 
-                                    <form action="{{ route('desktop.products.destroy', $p->id) }}" method="POST" onsubmit="return confirm('Hapus produk ini?')">
+                                    <form action="{{ route('desktop.products.destroy', $p->id) }}" method="POST" onsubmit="return confirmFormSubmit(event, 'Apakah Anda yakin ingin menghapus produk {{ $p->name }}?', 'Hapus Produk', 'Ya, Hapus', 'warning')">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" title="Hapus Produk" class="p-2 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg transition">
@@ -916,24 +893,16 @@ function productApp(allProductsData) {
                 const img = new Image();
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
-                    let width = img.width;
-                    let height = img.height;
-                    const maxDim = 600;
+                    const targetSize = 600;
+                    canvas.width = targetSize;
+                    canvas.height = targetSize;
 
-                    if (width > maxDim || height > maxDim) {
-                        if (width >= height) {
-                            height = Math.round((height / width) * maxDim);
-                            width = maxDim;
-                        } else {
-                            width = Math.round((width / height) * maxDim);
-                            height = maxDim;
-                        }
-                    }
+                    const cropSize = Math.min(img.width, img.height);
+                    const srcX = (img.width - cropSize) / 2;
+                    const srcY = (img.height - cropSize) / 2;
 
-                    canvas.width = width;
-                    canvas.height = height;
                     const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, width, height);
+                    ctx.drawImage(img, srcX, srcY, cropSize, cropSize, 0, 0, targetSize, targetSize);
 
                     canvas.toBlob((blob) => {
                         if (blob) {
@@ -945,7 +914,7 @@ function productApp(allProductsData) {
                             container.items.add(newFile);
                             fileInput.files = container.files;
                         }
-                    }, 'image/jpeg', 0.75);
+                    }, 'image/jpeg', 0.8);
                 };
                 img.src = e.target.result;
             };

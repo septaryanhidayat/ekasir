@@ -59,7 +59,7 @@
                                     </button>
 
                                     @if($u->id !== auth()->id())
-                                        <form action="{{ route('desktop.users.destroy', $u->id) }}" method="POST" onsubmit="return confirm('Hapus user ini?')">
+                                        <form action="{{ route('desktop.users.destroy', $u->id) }}" method="POST" onsubmit="return confirmFormSubmit(event, 'Apakah Anda yakin ingin menghapus user ini?', 'Hapus User', 'Ya, Hapus', 'warning')">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="p-2 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg">

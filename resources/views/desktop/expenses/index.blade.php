@@ -118,7 +118,7 @@
                                         </svg>
                                     </button>
 
-                                    <form action="{{ route('desktop.expenses.destroy', $item->id) }}" method="POST" onsubmit="return confirm('Hapus data pengeluaran ini?')">
+                                    <form action="{{ route('desktop.expenses.destroy', $item->id) }}" method="POST" onsubmit="return confirmFormSubmit(event, 'Apakah Anda yakin ingin menghapus data pengeluaran ini?', 'Hapus Pengeluaran', 'Ya, Hapus', 'warning')">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="p-2 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg">

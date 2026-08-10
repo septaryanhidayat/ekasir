@@ -26,6 +26,9 @@
     <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
+    <!-- SweetAlert2 CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <!-- HTML5-QRCode Scanner Library -->
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 
@@ -169,6 +172,64 @@
     </nav>
 </div>
 
-@stack('scripts')
+    <script>
+    function confirmFormSubmit(event, message, title = 'Konfirmasi Tindakan', confirmText = 'Ya, Lanjutkan', icon = 'warning') {
+        event.preventDefault();
+        const form = event.target.closest('form');
+        if (!form) return false;
+
+        Swal.fire({
+            title: title,
+            text: message,
+            icon: icon,
+            showCancelButton: true,
+            confirmButtonColor: '#4f46e5',
+            cancelButtonColor: '#94a3b8',
+            confirmButtonText: confirmText,
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit();
+            }
+        });
+
+        return false;
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        @if(session('success'))
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil!',
+                text: {!! json_encode(session('success')) !!},
+                confirmColor: '#4f46e5',
+                timer: 4500,
+                timerProgressBar: true
+            });
+        @endif
+
+        @if(session('error'))
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal!',
+                text: {!! json_encode(session('error')) !!},
+                confirmColor: '#ef4444'
+            });
+        @endif
+
+        @if($errors->any())
+            Swal.fire({
+                icon: 'error',
+                title: 'Terjadi Kesalahan Validasi',
+                html: '<ul style="text-align: left; font-size: 13px; margin: 0; padding-left: 20px; line-height: 1.6;">' +
+                    @js(collect($errors->all())->map(fn($e) => "<li>".e($e)."</li>")->implode('')) +
+                    '</ul>',
+                confirmColor: '#ef4444'
+            });
+        @endif
+    });
+    </script>
+
+    @stack('scripts')
 </body>
 </html>

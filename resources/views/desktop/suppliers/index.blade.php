@@ -119,7 +119,7 @@
                         <button @click="selectedSupplier = {{ json_encode($s) }}; editModal = true" class="px-2.5 py-1 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 font-bold text-[11px] rounded-lg transition">
                             Edit
                         </button>
-                        <form action="{{ route('desktop.suppliers.destroy', $s->id) }}" method="POST" onsubmit="return confirm('Hapus suplier {{ $s->name }}?')" class="inline">
+                        <form action="{{ route('desktop.suppliers.destroy', $s->id) }}" method="POST" onsubmit="return confirmFormSubmit(event, 'Apakah Anda yakin ingin menghapus suplier {{ $s->name }}?', 'Hapus Suplier', 'Ya, Hapus', 'warning')" class="inline">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="px-2 py-1 bg-rose-50 text-rose-600 hover:bg-rose-100 font-bold text-[11px] rounded-lg transition">
@@ -199,7 +199,7 @@
                                         </svg>
                                     </button>
 
-                                    <form action="{{ route('desktop.suppliers.destroy', $s->id) }}" method="POST" onsubmit="return confirm('Hapus suplier {{ $s->name }}?')">
+                                    <form action="{{ route('desktop.suppliers.destroy', $s->id) }}" method="POST" onsubmit="return confirmFormSubmit(event, 'Apakah Anda yakin ingin menghapus suplier {{ $s->name }}?', 'Hapus Suplier', 'Ya, Hapus', 'warning')">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" title="Hapus Suplier" class="p-2 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg transition">

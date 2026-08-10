@@ -49,25 +49,20 @@ class ImageOptimizer
         $width = imagesx($img);
         $height = imagesy($img);
 
-        // Resize down if width or height exceeds 600px
-        $maxDimension = 600;
-        if ($width > $maxDimension || $height > $maxDimension) {
-            if ($width >= $height) {
-                $newWidth = $maxDimension;
-                $newHeight = (int) max(1, round(($height / $width) * $maxDimension));
-            } else {
-                $newHeight = $maxDimension;
-                $newWidth = (int) max(1, round(($width / $height) * $maxDimension));
-            }
+        // 1:1 Square Center Crop
+        $cropSize = min($width, $height);
+        $srcX = (int) max(0, round(($width - $cropSize) / 2));
+        $srcY = (int) max(0, round(($height - $cropSize) / 2));
 
-            $resizedImg = imagecreatetruecolor($newWidth, $newHeight);
-            imagealphablending($resizedImg, false);
-            imagesavealpha($resizedImg, true);
+        $targetSize = min(600, $cropSize);
 
-            imagecopyresampled($resizedImg, $img, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
-            imagedestroy($img);
-            $img = $resizedImg;
-        }
+        $squareImg = imagecreatetruecolor($targetSize, $targetSize);
+        imagealphablending($squareImg, false);
+        imagesavealpha($squareImg, true);
+
+        imagecopyresampled($squareImg, $img, 0, 0, $srcX, $srcY, $targetSize, $targetSize, $cropSize, $cropSize);
+        imagedestroy($img);
+        $img = $squareImg;
 
         // Capture compressed buffer
         ob_start();

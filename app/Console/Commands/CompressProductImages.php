@@ -22,7 +22,7 @@ class CompressProductImages extends Command
      *
      * @var string
      */
-    protected $description = 'Kompres seluruh gambar produk lama di storage menjadi format WebP berukuran < 50KB';
+    protected $description = 'Kompres seluruh gambar produk lama di storage menjadi format WebP berukuran < 50KB dan bersihkan file lama';
 
     /**
      * Execute the console command.
@@ -32,24 +32,16 @@ class CompressProductImages extends Command
         $this->info('Memulai pemindaian dan kompresi seluruh foto produk lama...');
 
         $products = Product::whereNotNull('image')->where('image', '!=', '')->get();
-        if ($products->isEmpty()) {
-            $this->warn('Tidak ada produk dengan gambar yang ditemukan.');
-            return 0;
-        }
-
         $totalCompressed = 0;
         $totalSavedBytes = 0;
 
-        $bar = $this->output->createProgressBar($products->count());
-        $bar->start();
-
+        // 1. Process all products in database
         foreach ($products as $product) {
             $cleanPath = ltrim($product->image, '/');
             if (str_starts_with($cleanPath, 'storage/')) {
                 $cleanPath = substr($cleanPath, 8);
             }
 
-            // Find physical path
             $storagePath = storage_path('app/public/' . $cleanPath);
             $publicPath = public_path('storage/' . $cleanPath);
 
@@ -61,32 +53,28 @@ class CompressProductImages extends Command
             }
 
             if (!$targetPath) {
-                $bar->advance();
                 continue;
             }
 
             $originalSizeBytes = filesize($targetPath);
 
-            // Skip if file is already small (< 50KB) unless --force is used
+            // Skip if file is already small (< 50KB) and webp
             if ($originalSizeBytes <= 50 * 1024 && !$this->option('force') && str_ends_with(strtolower($cleanPath), '.webp')) {
-                $bar->advance();
                 continue;
             }
 
             $imageContent = @file_get_contents($targetPath);
             if (!$imageContent) {
-                $bar->advance();
                 continue;
             }
 
-            // Compress using ImageOptimizer
             $newRelativePath = ImageOptimizer::compressAndStore($imageContent, 'products');
 
             if ($newRelativePath) {
                 $newStoragePath = storage_path('app/public/' . $newRelativePath);
                 $newSizeBytes = file_exists($newStoragePath) ? filesize($newStoragePath) : 0;
 
-                // Delete old physical files if path changed
+                // Delete old uncompressed file
                 if ($cleanPath !== $newRelativePath) {
                     if (file_exists($storagePath)) @unlink($storagePath);
                     if (file_exists($publicPath)) @unlink($publicPath);
@@ -99,16 +87,51 @@ class CompressProductImages extends Command
                 $savedBytes = max(0, $originalSizeBytes - $newSizeBytes);
                 $totalSavedBytes += $savedBytes;
             }
-
-            $bar->advance();
         }
 
-        $bar->finish();
-        $this->newLine(2);
+        // 2. Full Directory Sweep: Purge any old uncompressed .jpg/.png files in products directory
+        $directories = [
+            storage_path('app/public/products'),
+            public_path('storage/products'),
+        ];
+
+        foreach ($directories as $dir) {
+            if (!is_dir($dir)) continue;
+
+            $files = glob($dir . '/*.{jpg,jpeg,png,bmp,JPG,JPEG,PNG,BMP,gif,GIF}', GLOB_BRACE);
+            if (!empty($files)) {
+                foreach ($files as $filePath) {
+                    $originalSize = filesize($filePath);
+                    $filename = basename($filePath);
+                    $relPath = 'products/' . $filename;
+
+                    $content = @file_get_contents($filePath);
+                    if ($content) {
+                        $newRelPath = ImageOptimizer::compressAndStore($content, 'products');
+                        if ($newRelPath) {
+                            $newStoragePath = storage_path('app/public/' . $newRelPath);
+                            $newSizeBytes = file_exists($newStoragePath) ? filesize($newStoragePath) : 0;
+
+                            // Update DB if any product was pointing to this old file
+                            Product::where('image', $relPath)
+                                ->orWhere('image', '/' . $relPath)
+                                ->orWhere('image', 'storage/' . $relPath)
+                                ->update(['image' => $newRelPath]);
+
+                            @unlink($filePath);
+                            $totalCompressed++;
+                            $savedBytes = max(0, $originalSize - $newSizeBytes);
+                            $totalSavedBytes += $savedBytes;
+                        }
+                    } else {
+                        @unlink($filePath);
+                    }
+                }
+            }
+        }
 
         $savedMB = round($totalSavedBytes / (1024 * 1024), 2);
-        $this->info("✅ Sukses! Berhasil mengompres {$totalCompressed} gambar produk.");
-        $this->info("💾 Total ruang penyimpanan server yang dihemat: {$savedMB} MB.");
+        $this->info("Sukses! Berhasil mengompres foto produk dan menghemat {$savedMB} MB ruang penyimpanan.");
 
         return 0;
     }

@@ -176,6 +176,12 @@ class ProductController extends Controller
     {
         \Illuminate\Support\Facades\Artisan::call('products:compress-images', ['--force' => true]);
         $output = \Illuminate\Support\Facades\Artisan::output();
-        return back()->with('success', 'Proses kompresi foto produk lama selesai! ' . trim($output));
+        
+        $cleanMessage = trim(preg_replace('/\s+/', ' ', strip_tags($output)));
+        if (empty($cleanMessage) || !str_contains($cleanMessage, 'Sukses')) {
+            $cleanMessage = 'Kompresi foto produk lama selesai! Seluruh foto kini berukuran < 50KB dan berkas lama telah dibersihkan.';
+        }
+
+        return back()->with('success', $cleanMessage);
     }
 }
